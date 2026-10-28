@@ -1,45 +1,38 @@
-# 🏋️ Training Calendar & Tracker
+# ♟️ Šachový kalendář tréninků
 
-A modern, responsive web application designed for athletes and fitness enthusiasts to track weekly training sessions with a special focus on **Wednesdays** and **Thursdays**.
+Moderní, responzivní webová aplikace navržená pro šachisty a klubové hráče k evidenci pravidelných šachových tréninků se zaměřením na **středy** a **čtvrtky**.
 
-![Training Calendar Preview](screenshot.png)
+## ✨ Hlavní funkce
 
-## ✨ Features
+- **🗓️ Zaměření na středu a čtvrtek**: Automatické vizuální zvýraznění a odznáčky pro hlavní tréninkové dny (Středa & Čtvrtek).
+- **✅ Rychlé odškrtávání**: Označení splněného tréninku jedním kliknutím přímo z přehledu kalendáře.
+- **🔢 Počítadlo tréninků**: Možnost zaznamenat, kolik tréninků v daný den proběhlo (1, 2 nebo více) pomocí tlačítek `+` a `-` nebo v detailu dne.
+- **📝 Poznámky k partiím a tréninkům**: Zápis rozborů, odehraných zahájení, témat přednášek, odkazů na partie a zjištěných chyb.
+- **🏷️ Šachové štítky**: Rychlé označení témat – Taktika & Diagramy, Teorie zahájení, Rozbor vlastních partií, Trénink koncovek, Cvičné partie / Bleskovky, Lekce s trenérem / Klub.
+- **📊 Statistiky a přehledy**:
+  - Celkový počet absolvovaných šachových lekcí v měsíci.
+  - Procentuální docházka na středeční a čtvrteční tréninky.
+  - Počet zapsaných rozborů a poznámek.
+  - Aktivní tréninková série v týdnech.
+- **🔍 Filtrování pohledu**: Přepínání mezi kompletním kalendářem a pohledem zaměřeným pouze na tréninkové dny (St & Čt).
+- **💾 Automatické ukládání**: Všechna data se ukládají lokálně v prohlížeči (`localStorage`).
+- **📦 Export & Záloha**: Export do formátu JSON a tabulky CSV (Excel, Google Sheets), možnost snadné obnovy.
+- **🌙 Tmavý & Světlý režim**: Podpora tmavého i světlého motivu s pamětí.
 
-- **🗓️ Wednesday & Thursday Focus**: Special highlight indicators and checkmark badges for target Wednesday and Thursday workout days.
-- **✅ Quick Checkmarks**: Toggle training completion directly from the calendar grid with one click.
-- **🔢 Training Count Tracker**: Easily record how many training sessions you completed each day (1, 2, or more) using quick `+` and `-` buttons or the detailed day modal.
-- **📝 Detailed Notes**: Record comprehensive training reflections, drills, exercises completed, and workout intensity.
-- **🏷️ Quick Focus Tags**: Tag sessions with Gym, Running, Swimming, Practice, Mobility, Match, and more.
-- **📊 Real-time Analytics**:
-  - Total training sessions logged this month.
-  - Wednesday & Thursday target attendance rate (%).
-  - Detailed notes count.
-  - Active weekly training streaks.
-- **🔍 View Modes**: Switch between "All Days" view and a focused "Wed & Thu Only" view.
-- **💾 Local Persistence**: All data is automatically saved in browser `localStorage`.
-- **📦 Data Portability**: Export your data to JSON backup or CSV spreadsheet (compatible with Excel & Google Sheets), and restore backups anytime.
-- **🌙 Dark & Light Mode**: Seamless theme switching with system preference detection.
+## 🚀 Spuštění
 
-## 🚀 Getting Started
-
-Simply open `index.html` in any web browser, or serve using any static web server:
+Stačí otevřít soubor `index.html` v libovolném webovém prohlížeči, nebo spustit lokální server:
 
 ```bash
-# Using npx serve
 npx serve .
-
-# Or using Node http-server
-npx http-server .
 ```
 
-## 🛠️ Tech Stack
+## 🛠️ Technologie
 
-- **HTML5 & CSS3** with modern responsive layout
-- **Tailwind CSS** (via CDN)
-- **Vanilla JavaScript (ES6+)** with zero dependencies
-- **Vercel** deployment ready
+- HTML5, moderní CSS3 a **Tailwind CSS**
+- Čistý JavaScript (ES6+) bez dalších závislostí
+- Připraveno pro nasazení na **Vercel**
 
-## 📄 License
+## 📄 Licence
 
 MIT

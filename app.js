@@ -1,20 +1,35 @@
-// Training Calendar & Tracker
-// Wednesday & Thursday Training Management
+// Šachový kalendář tréninků
+// Sledování středečních a čtvrtečních tréninků, počtu lekcí a rozborů
 
 (function () {
   'use strict';
 
-  // Storage Keys
-  const STORAGE_KEY = 'training_calendar_data_v1';
-  const THEME_KEY = 'training_calendar_theme';
+  // Klíče úložiště
+  const STORAGE_KEY = 'chess_training_calendar_data_v2';
+  const THEME_KEY = 'chess_training_calendar_theme';
 
-  // State
-  let currentDate = new Date(); // Year and month currently displayed
-  let trainingsData = {}; // Format: { "YYYY-MM-DD": { completed: true, count: 1, notes: "...", tags: [] } }
+  // Názvy měsíců a dnů v češtině
+  const CZECH_MONTHS = [
+    'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
+    'Červenec', 'Srpen', 'Září', 'Říjen', 'Listopad', 'Prosinec'
+  ];
+
+  const CZECH_MONTHS_GENITIVE = [
+    'ledna', 'února', 'března', 'dubna', 'května', 'června',
+    'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'
+  ];
+
+  const CZECH_DAYS_LONG = [
+    'Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'
+  ];
+
+  // Stav aplikace
+  let currentDate = new Date(); // Zobrazený měsíc a rok
+  let trainingsData = {}; // Formát: { "YYYY-MM-DD": { completed: true, count: 1, notes: "...", tags: [] } }
   let selectedDateKey = null;
-  let viewFilter = 'all'; // 'all' or 'wed-thu'
+  let viewFilter = 'all'; // 'all' nebo 'wed-thu'
 
-  // DOM Elements
+  // DOM Prvky
   const calendarGrid = document.getElementById('calendar-days-grid');
   const currentMonthDisplay = document.getElementById('current-month-display');
   const prevMonthBtn = document.getElementById('prev-month-btn');
@@ -25,14 +40,14 @@
   const viewFocusBtn = document.getElementById('view-focus-btn');
   const themeToggle = document.getElementById('theme-toggle');
 
-  // Stats Elements
+  // Prvky statistik
   const statTotalTrainings = document.getElementById('stat-total-trainings');
   const statWedThuCompleted = document.getElementById('stat-wed-thu-completed');
   const statWedThuPercent = document.getElementById('stat-wed-thu-percent');
   const statNotesCount = document.getElementById('stat-notes-count');
   const statStreak = document.getElementById('stat-streak');
 
-  // Day Modal Elements
+  // Modální okno dne
   const dayModal = document.getElementById('day-modal');
   const modalCloseBtn = document.getElementById('modal-close-btn');
   const modalCancelBtn = document.getElementById('modal-cancel-btn');
@@ -48,7 +63,7 @@
   const modalNotesInput = document.getElementById('modal-notes-input');
   const quickTagButtons = document.querySelectorAll('#modal-quick-tags .tag-btn');
 
-  // Export Modal Elements
+  // Exportní modál
   const exportModalBtn = document.getElementById('export-modal-btn');
   const exportModal = document.getElementById('export-modal');
   const exportCloseBtn = document.getElementById('export-close-btn');
@@ -56,7 +71,7 @@
   const downloadCsvBtn = document.getElementById('download-csv-btn');
   const importJsonFile = document.getElementById('import-json-file');
 
-  // --- INITIALIZATION ---
+  // --- INICIALIZACE ---
   function init() {
     loadTheme();
     loadTrainingsData();
@@ -65,7 +80,7 @@
     updateStats();
   }
 
-  // --- THEME MANAGEMENT ---
+  // --- SPRÁVA MOTIVU (DARK / LIGHT) ---
   function loadTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY);
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -80,19 +95,25 @@
     localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
   }
 
-  // --- DATA STORAGE ---
+  // --- NAČÍTÁNÍ A UKLÁDÁNÍ DAT ---
   function loadTrainingsData() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         trainingsData = JSON.parse(saved);
       } else {
-        // First run: provide helpful demo defaults for the current month so user sees how it looks
-        trainingsData = seedInitialData();
+        // Zkusit starší klíč pokud existuje
+        const oldSaved = localStorage.getItem('training_calendar_data_v1');
+        if (oldSaved) {
+          trainingsData = JSON.parse(oldSaved);
+        } else {
+          // První spuštění: nachystat vzorová šachová data pro aktuální měsíc
+          trainingsData = seedInitialChessData();
+        }
         saveTrainingsData();
       }
     } catch (e) {
-      console.error('Failed to load training data from localStorage:', e);
+      console.error('Chyba při načítání dat z localStorage:', e);
       trainingsData = {};
     }
   }
@@ -101,41 +122,50 @@
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(trainingsData));
     } catch (e) {
-      console.error('Failed to save training data:', e);
+      console.error('Chyba při ukládání dat:', e);
     }
   }
 
-  // Generate gentle sample data for current month (checks current/past Wed & Thu with sample notes)
-  function seedInitialData() {
+  // Vytvoření vzorových šachových tréninků pro středy a čtvrtky
+  function seedInitialChessData() {
     const data = {};
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
+    const sampleNotes = [
+      { count: 1, note: '1 trénink: 45 min taktika na Lichess (Puzzle Storm) + propočet', tags: ['Taktika & Diagramy'] },
+      { count: 2, note: '2 tréninky: Odpoledne rozbor Sicilské obrany + večer 3 vážné rapid partie', tags: ['Teorie zahájení', 'Cvičné partie / Bleskovky'] },
+      { count: 1, note: '1 trénink: Klubový trénink v oddíle, rozbor chyb z víkendové ligy', tags: ['Lekce s trenérem / Klub', 'Rozbor vlastních partií'] },
+      { count: 2, note: '2 tréninky: Věžové koncovky (Lucenova a Philidorova pozice) + taktika', tags: ['Trénink koncovek', 'Taktika & Diagramy'] }
+    ];
+
+    let sampleIdx = 0;
+
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dayOfWeek = date.getDay(); // 0 Sun, 1 Mon, 2 Tue, 3 Wed, 4 Thu, 5 Fri, 6 Sat
+      const dayOfWeek = date.getDay(); // 3 = Středa, 4 = Čtvrtek
       const dateKey = formatDateKey(date);
 
-      // Pre-seed Wednesdays and Thursdays
       if (dayOfWeek === 3 || dayOfWeek === 4) {
         if (date <= now) {
-          // Past or today's Wed/Thu: check with training count
+          const sample = sampleNotes[sampleIdx % sampleNotes.length];
+          sampleIdx++;
           data[dateKey] = {
             completed: true,
-            count: dayOfWeek === 3 ? 1 : 2,
-            notes: dayOfWeek === 3 ? "1 training: Strength & mobility session" : "2 trainings: Morning gym + evening drills",
-            tags: dayOfWeek === 3 ? ["Gym / Strength"] : ["Gym / Strength", "Team Practice"],
+            count: sample.count,
+            notes: sample.note,
+            tags: sample.tags,
             updatedAt: Date.now()
           };
         } else {
-          // Future Wed/Thu: mark scheduled with target count 1
+          // Budoucí tréninkový den
           data[dateKey] = {
             completed: true,
             count: 1,
-            notes: "Scheduled weekly training",
-            tags: ["Team Practice"],
+            notes: 'Plánovaný šachový trénink',
+            tags: ['Taktika & Diagramy'],
             updatedAt: Date.now()
           };
         }
@@ -144,7 +174,7 @@
     return data;
   }
 
-  // Helper date key formatter: YYYY-MM-DD
+  // Pomocný formát data: YYYY-MM-DD
   function formatDateKey(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -157,31 +187,34 @@
     return new Date(y, m - 1, d);
   }
 
-  // --- CALENDAR RENDERING ---
+  function formatCzechDateFull(date) {
+    const dow = CZECH_DAYS_LONG[date.getDay()];
+    const day = date.getDate();
+    const month = CZECH_MONTHS_GENITIVE[date.getMonth()];
+    const year = date.getFullYear();
+    return `${dow}, ${day}. ${month} ${year}`;
+  }
+
+  // --- VYKRESLENÍ KALENDÁŘE ---
   function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    // Set Header display e.g. "October 2026"
-    const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    currentMonthDisplay.textContent = `${monthNames[month]} ${year}`;
+    // Nadpis měsíce např. "Říjen 2026"
+    currentMonthDisplay.textContent = `${CZECH_MONTHS[month]} ${year}`;
 
-    // Clear grid
+    // Vyčistit mřížku
     calendarGrid.innerHTML = '';
 
-    // Calculate days
+    // Výpočet dnů
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const totalDays = lastDayOfMonth.getDate();
 
-    // Monday as first day of week:
-    // Sunday in JS getDay() is 0. Convert so Monday = 0, Sunday = 6
+    // Pondělí jako 1. den v týdnu (v JS je Neděle 0)
     let startingDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
 
-    // Previous month filler days
+    // Dny z předchozího měsíce
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = startingDayIndex - 1; i >= 0; i--) {
       const prevDate = new Date(year, month - 1, prevMonthLastDay - i);
@@ -189,14 +222,14 @@
       calendarGrid.appendChild(cell);
     }
 
-    // Current month days
+    // Dny aktuálního měsíce
     for (let day = 1; day <= totalDays; day++) {
       const date = new Date(year, month, day);
       const cell = createDayCell(date, false);
       calendarGrid.appendChild(cell);
     }
 
-    // Next month filler days to complete standard 35 or 42 grid cells
+    // Dny z následujícího měsíce do konce řádku
     const totalRendered = startingDayIndex + totalDays;
     const remainingCells = (totalRendered % 7 === 0) ? 0 : 7 - (totalRendered % 7);
     for (let day = 1; day <= remainingCells; day++) {
@@ -211,7 +244,7 @@
   function createDayCell(date, isOutsideMonth) {
     const cell = document.createElement('div');
     const dateKey = formatDateKey(date);
-    const dayOfWeek = date.getDay(); // 3 = Wed, 4 = Thu
+    const dayOfWeek = date.getDay(); // 3 = Středa, 4 = Čtvrtek
     const isWed = dayOfWeek === 3;
     const isThu = dayOfWeek === 4;
     const isTrainingDay = isWed || isThu;
@@ -224,12 +257,12 @@
     const count = entry.count || 0;
     const hasNote = Boolean(entry.notes && entry.notes.trim().length > 0);
 
-    // Apply Focus View filter if active
+    // Filtr zaměření pouze na St & Čt
     if (viewFilter === 'wed-thu' && !isTrainingDay && !isOutsideMonth) {
       cell.classList.add('opacity-25', 'grayscale', 'pointer-events-none');
     }
 
-    // Base styling
+    // Třídy pro buňku
     cell.className = `day-cell relative min-h-[135px] p-2.5 sm:p-3 flex flex-col justify-between border-b border-r border-slate-200 dark:border-slate-800 transition-all ${
       isOutsideMonth
         ? 'bg-slate-50/50 dark:bg-slate-900/40 opacity-40'
@@ -238,11 +271,10 @@
           : 'bg-white dark:bg-slate-900'
     } ${isToday ? 'ring-2 ring-inset ring-brand-500' : ''}`;
 
-    // Top Row: Day Number + Day Badges (Wed / Thu Marker & Today)
+    // Horní řádek: Číslo dne + Odznáček dne (St / Čt)
     const topRow = document.createElement('div');
     topRow.className = 'flex items-center justify-between gap-1';
 
-    // Day number
     const dayNumSpan = document.createElement('span');
     dayNumSpan.className = `text-sm font-bold flex items-center justify-center w-7 h-7 rounded-lg ${
       isToday
@@ -254,7 +286,6 @@
     dayNumSpan.textContent = date.getDate();
     topRow.appendChild(dayNumSpan);
 
-    // Badges container (Training day badge)
     const badgeContainer = document.createElement('div');
     badgeContainer.className = 'flex items-center gap-1';
 
@@ -265,25 +296,25 @@
           ? 'bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300'
           : 'bg-schedule-100 text-schedule-700 dark:bg-schedule-900/60 dark:text-schedule-300'
       }`;
-      targetBadge.textContent = isWed ? 'Wed' : 'Thu';
+      targetBadge.textContent = isWed ? 'Středa' : 'Čtvrtek';
       badgeContainer.appendChild(targetBadge);
     }
 
     if (hasNote) {
       const noteBadge = document.createElement('span');
       noteBadge.className = 'w-2 h-2 rounded-full bg-amber-500 inline-block';
-      noteBadge.title = 'Has training note';
+      noteBadge.title = 'Obsahuje poznámku k tréninku';
       badgeContainer.appendChild(noteBadge);
     }
 
     topRow.appendChild(badgeContainer);
     cell.appendChild(topRow);
 
-    // Middle Content: Interactive Checkmark Button & Training Count
+    // Střed: Tlačítko odškrtnutí & Počet tréninků
     const midContent = document.createElement('div');
     midContent.className = 'my-2 flex flex-col gap-1.5';
 
-    // Checkbox / Checkmark Button
+    // Tlačítko se symbolem zaškrtnutí
     const checkBtn = document.createElement('button');
     checkBtn.type = 'button';
     checkBtn.className = `w-full py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-between border transition-all ${
@@ -303,7 +334,7 @@
         }">
           ${isCompleted ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
         </span>
-        <span class="truncate">${isCompleted ? 'Done' : (isTrainingDay ? 'Scheduled' : 'Log')}</span>
+        <span class="truncate">${isCompleted ? 'Splněno' : (isTrainingDay ? 'Trénink' : 'Zapsat')}</span>
       </div>
       <span class="font-mono text-[11px] font-bold opacity-90">${count > 0 ? `${count}x` : '-'}</span>
     `;
@@ -314,17 +345,17 @@
     });
     midContent.appendChild(checkBtn);
 
-    // Direct Quick Counter (+ / -)
+    // Přímé počítadlo počtu tréninků (+ / -)
     if (isCompleted || isTrainingDay) {
       const counterRow = document.createElement('div');
       counterRow.className = 'flex items-center justify-between px-1 text-[11px] font-medium text-slate-500 dark:text-slate-400';
       
       counterRow.innerHTML = `
-        <span class="text-[10px]">Trainings:</span>
+        <span class="text-[10px]">Tréninky:</span>
         <div class="flex items-center gap-1">
-          <button type="button" class="minus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none">-</button>
+          <button type="button" class="minus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none" title="Ubrat trénink">-</button>
           <span class="w-4 text-center font-mono font-bold text-slate-900 dark:text-white">${count}</span>
-          <button type="button" class="plus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none">+</button>
+          <button type="button" class="plus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none" title="Přidat trénink">+</button>
         </div>
       `;
 
@@ -343,7 +374,7 @@
 
     cell.appendChild(midContent);
 
-    // Bottom Row: Note snippet or Click to Add Note prompt
+    // Spodní řádek: Náhled poznámky nebo výzva k přidání
     const bottomRow = document.createElement('div');
     bottomRow.className = 'mt-auto pt-1 border-t border-slate-100 dark:border-slate-800/80 cursor-pointer';
 
@@ -351,9 +382,7 @@
       const noteSnippet = document.createElement('div');
       noteSnippet.className = 'text-[11px] text-slate-600 dark:text-slate-300 truncate flex items-center gap-1 hover:text-brand-600 dark:hover:text-brand-400 transition-colors';
       noteSnippet.innerHTML = `
-        <svg class="w-3 h-3 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-        </svg>
+        <span class="text-[11px] shrink-0">♟️</span>
         <span class="truncate italic">${escapeHtml(entry.notes)}</span>
       `;
       bottomRow.appendChild(noteSnippet);
@@ -362,12 +391,11 @@
       addPrompt.className = 'text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1';
       addPrompt.innerHTML = `
         <span class="text-xs">+</span>
-        <span>${isTrainingDay ? 'Add notes' : 'Note'}</span>
+        <span>${isTrainingDay ? 'Poznámka k partii' : 'Zapsat poznámku'}</span>
       `;
       bottomRow.appendChild(addPrompt);
     }
 
-    // Open detail modal when cell or bottom row is clicked
     cell.addEventListener('click', () => {
       openDayModal(dateKey, date, isTrainingDay);
     });
@@ -376,20 +404,19 @@
     return cell;
   }
 
-  // --- ACTIONS & MUTATIONS ---
+  // --- AKCE A ZMĚNY STAVU ---
   function toggleDayCompletion(dateKey, isTrainingDay) {
     if (!trainingsData[dateKey]) {
       trainingsData[dateKey] = {
         completed: true,
-        count: 1, // default to 1 training
-        notes: isTrainingDay ? 'Scheduled training completed' : '',
-        tags: [],
+        count: 1,
+        notes: isTrainingDay ? 'Šachový trénink splněn' : '',
+        tags: ['Taktika & Diagramy'],
         updatedAt: Date.now()
       };
     } else {
       const current = trainingsData[dateKey].completed;
       trainingsData[dateKey].completed = !current;
-      // If toggled on and count was 0, default to 1
       if (!current && (trainingsData[dateKey].count || 0) === 0) {
         trainingsData[dateKey].count = 1;
       }
@@ -423,13 +450,12 @@
     renderCalendar();
   }
 
-  // Check / Uncheck all Wed & Thu in the current month
+  // Označit nebo odznačit všechny středy a čtvrtky v měsíci
   function bulkToggleWedThu() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    // Check if majority are already completed
     let wedThuCount = 0;
     let completedCount = 0;
 
@@ -456,8 +482,8 @@
           trainingsData[key] = {
             completed: shouldCompleteAll,
             count: shouldCompleteAll ? 1 : 0,
-            notes: shouldCompleteAll ? 'Weekly scheduled training' : '',
-            tags: [],
+            notes: shouldCompleteAll ? 'Pravidelný šachový trénink' : '',
+            tags: ['Taktika & Diagramy'],
             updatedAt: Date.now()
           };
         } else {
@@ -474,29 +500,28 @@
     renderCalendar();
   }
 
-  // --- DAY MODAL HANDLING ---
+  // --- MODÁLNÍ OKNO PRO DETAIL DNE ---
   function openDayModal(dateKey, date, isTrainingDay) {
     selectedDateKey = dateKey;
     const entry = trainingsData[dateKey] || { completed: false, count: isTrainingDay ? 1 : 0, notes: '', tags: [] };
 
-    // Format Title e.g. "Wednesday, October 28, 2026"
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    modalDateTitle.textContent = date.toLocaleDateString('en-US', options);
+    // Titulek v češtině
+    modalDateTitle.textContent = formatCzechDateFull(date);
 
     if (isTrainingDay) {
-      modalBadgeDay.textContent = date.getDay() === 3 ? 'Wednesday Training' : 'Thursday Training';
+      modalBadgeDay.textContent = date.getDay() === 3 ? 'Středeční šachový trénink' : 'Čtvrteční šachový trénink';
       modalBadgeDay.classList.remove('hidden');
     } else {
       modalBadgeDay.classList.add('hidden');
     }
 
-    // Populate Fields
+    // Vyplnění polí
     modalCompletedToggle.checked = Boolean(entry.completed);
     updateModalStatusLabel(Boolean(entry.completed));
     modalCountInput.value = entry.count !== undefined ? entry.count : (entry.completed ? 1 : 0);
     modalNotesInput.value = entry.notes || '';
 
-    // Active tags
+    // Štítky
     const activeTags = entry.tags || [];
     quickTagButtons.forEach(btn => {
       const tag = btn.dataset.tag;
@@ -509,7 +534,7 @@
       }
     });
 
-    // Animate Show Modal
+    // Zobrazení s animací
     dayModal.classList.remove('hidden');
     setTimeout(() => {
       const content = dayModal.querySelector('.modal-content');
@@ -531,10 +556,10 @@
 
   function updateModalStatusLabel(isCompleted) {
     if (isCompleted) {
-      modalStatusText.textContent = 'Completed ✓';
+      modalStatusText.textContent = 'Splněno ✓';
       modalStatusText.className = 'text-sm font-bold text-brand-600 dark:text-brand-400';
     } else {
-      modalStatusText.textContent = 'Not done yet';
+      modalStatusText.textContent = 'Zatím nesplněno';
       modalStatusText.className = 'text-sm font-bold text-slate-500 dark:text-slate-400';
     }
   }
@@ -546,7 +571,6 @@
     const count = Math.max(0, parseInt(modalCountInput.value, 10) || 0);
     const notes = modalNotesInput.value.trim();
 
-    // Collect active tags
     const selectedTags = [];
     quickTagButtons.forEach(btn => {
       if (btn.classList.contains('bg-brand-500')) {
@@ -575,7 +599,7 @@
     closeDayModal();
   }
 
-  // --- STATS CALCULATION ---
+  // --- STATISTIKY ---
   function updateStats() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -609,10 +633,8 @@
       }
     }
 
-    // Streak calculation (weeks with at least 1 completed training)
     const streak = calculateStreak();
 
-    // Render Stats
     statTotalTrainings.textContent = totalTrainingsCount;
     statWedThuCompleted.textContent = `${wedThuCompleted}/${wedThuTotal}`;
     const percent = wedThuTotal > 0 ? Math.round((wedThuCompleted / wedThuTotal) * 100) : 0;
@@ -622,7 +644,6 @@
   }
 
   function calculateStreak() {
-    // Count consecutive weeks in the past that had at least one completed training session
     let streakCount = 0;
     let checkDate = new Date();
 
@@ -646,29 +667,29 @@
     return streakCount;
   }
 
-  // --- EXPORT & IMPORT ---
+  // --- EXPORT A IMPORT ---
   function exportJSON() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(trainingsData, null, 2));
     const dlAnchorElem = document.createElement('a');
     dlAnchorElem.setAttribute('href', dataStr);
-    dlAnchorElem.setAttribute('download', `training_calendar_backup_${formatDateKey(new Date())}.json`);
+    dlAnchorElem.setAttribute('download', `sachove_treninky_zaloha_${formatDateKey(new Date())}.json`);
     dlAnchorElem.click();
   }
 
   function exportCSV() {
-    const rows = [['Date', 'Day of Week', 'Is Target (Wed/Thu)', 'Completed', 'Trainings Count', 'Notes', 'Tags']];
+    const rows = [['Datum', 'Den v týdnu', 'Tréninkový den (St/Čt)', 'Splněno', 'Počet tréninků', 'Poznámky', 'Štítky']];
     const sortedKeys = Object.keys(trainingsData).sort();
 
     sortedKeys.forEach(key => {
       const date = parseDateKey(key);
-      const dow = date.toLocaleDateString('en-US', { weekday: 'long' });
+      const dow = CZECH_DAYS_LONG[date.getDay()];
       const isTarget = date.getDay() === 3 || date.getDay() === 4;
       const entry = trainingsData[key];
       rows.push([
         key,
         dow,
-        isTarget ? 'Yes' : 'No',
-        entry.completed ? 'Completed' : 'No',
+        isTarget ? 'Ano' : 'Ne',
+        entry.completed ? 'Splněno' : 'Ne',
         entry.count || 0,
         `"${(entry.notes || '').replace(/"/g, '""')}"`,
         `"${(entry.tags || []).join('; ')}"`
@@ -678,7 +699,7 @@
     const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
     const dlAnchor = document.createElement('a');
     dlAnchor.setAttribute('href', encodeURI(csvContent));
-    dlAnchor.setAttribute('download', `training_log_${formatDateKey(new Date())}.csv`);
+    dlAnchor.setAttribute('download', `sachove_treninky_${formatDateKey(new Date())}.csv`);
     dlAnchor.click();
   }
 
@@ -695,20 +716,19 @@
           saveTrainingsData();
           renderCalendar();
           exportModal.classList.add('hidden');
-          alert('Training data successfully restored!');
+          alert('Šachová tréninková data byla úspěšně obnovena!');
         } else {
-          alert('Invalid file format. Please upload a valid JSON backup.');
+          alert('Neplatný formát souboru. Nahrajte platný JSON soubor.');
         }
       } catch (err) {
-        alert('Error parsing JSON backup file.');
+        alert('Chyba při čtení souboru se zálohou.');
       }
     };
     reader.readAsText(file);
   }
 
-  // --- EVENT LISTENERS ---
+  // --- POSLUCHAČE UDÁLOSTÍ ---
   function setupEventListeners() {
-    // Navigation
     prevMonthBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       renderCalendar();
@@ -726,7 +746,6 @@
 
     bulkCheckBtn.addEventListener('click', bulkToggleWedThu);
 
-    // View filter toggle
     viewAllBtn.addEventListener('click', () => {
       viewFilter = 'all';
       viewAllBtn.className = 'px-2.5 py-1.5 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
@@ -741,10 +760,8 @@
       renderCalendar();
     });
 
-    // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
 
-    // Day Modal controls
     modalCloseBtn.addEventListener('click', closeDayModal);
     modalCancelBtn.addEventListener('click', closeDayModal);
     modalSaveBtn.addEventListener('click', saveModalData);
@@ -773,7 +790,6 @@
       updateModalStatusLabel(true);
     });
 
-    // Quick tags click toggle
     quickTagButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         const isActive = btn.classList.toggle('bg-brand-500');
@@ -787,7 +803,6 @@
       });
     });
 
-    // Export Modal controls
     exportModalBtn.addEventListener('click', () => {
       exportModal.classList.remove('hidden');
     });
@@ -798,7 +813,6 @@
     downloadCsvBtn.addEventListener('click', exportCSV);
     importJsonFile.addEventListener('change', handleImportJSON);
 
-    // Close modals on escape key or backdrop click
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         if (!dayModal.classList.contains('hidden')) closeDayModal();
@@ -815,7 +829,6 @@
     });
   }
 
-  // Escape HTML utility
   function escapeHtml(text) {
     if (!text) return '';
     return text
@@ -826,7 +839,6 @@
       .replace(/'/g, '&#039;');
   }
 
-  // Run on DOM ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
