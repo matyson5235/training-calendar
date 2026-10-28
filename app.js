@@ -7,6 +7,7 @@
   // Klíče úložiště
   const STORAGE_KEY = 'chess_training_calendar_data_v2';
   const THEME_KEY = 'chess_training_calendar_theme';
+  const FORMAT_KEY = 'chess_calendar_view_format';
 
   // Názvy měsíců a dnů v češtině
   const CZECH_MONTHS = [
@@ -28,9 +29,13 @@
   let trainingsData = {}; // Formát: { "YYYY-MM-DD": { completed: true, count: 1, notes: "...", tags: [] } }
   let selectedDateKey = null;
   let viewFilter = 'all'; // 'all' nebo 'wed-thu'
+  let viewFormat = 'grid'; // 'grid' nebo 'agenda'
 
   // DOM Prvky
-  const calendarGrid = document.getElementById('calendar-days-grid');
+  const calendarDaysGrid = document.getElementById('calendar-days-grid');
+  const calendarViewContainer = document.getElementById('calendar-view-container');
+  const agendaViewContainer = document.getElementById('agenda-view-container');
+  const agendaCardsList = document.getElementById('agenda-cards-list');
   const currentMonthDisplay = document.getElementById('current-month-display');
   const prevMonthBtn = document.getElementById('prev-month-btn');
   const nextMonthBtn = document.getElementById('next-month-btn');
@@ -38,6 +43,9 @@
   const bulkCheckBtn = document.getElementById('bulk-check-btn');
   const viewAllBtn = document.getElementById('view-all-btn');
   const viewFocusBtn = document.getElementById('view-focus-btn');
+  const formatGridBtn = document.getElementById('format-grid-btn');
+  const formatAgendaBtn = document.getElementById('format-agenda-btn');
+  const gridFilterContainer = document.getElementById('grid-filter-container');
   const themeToggle = document.getElementById('theme-toggle');
 
   // Prvky statistik
@@ -75,12 +83,12 @@
   function init() {
     loadTheme();
     loadTrainingsData();
+    loadViewFormat();
     setupEventListeners();
-    renderCalendar();
-    updateStats();
+    render();
   }
 
-  // --- SPRÁVA MOTIVU (DARK / LIGHT) ---
+  // --- SPRÁVA MOTIVU ---
   function loadTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY);
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -95,6 +103,39 @@
     localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
   }
 
+  // --- SPRÁVA POHLEDU (MŘÍŽKA VS SEZNAM) ---
+  function loadViewFormat() {
+    // Na malých displejích můžeme respektovat uložený formát nebo nechat mřížku
+    const saved = localStorage.getItem(FORMAT_KEY);
+    if (saved === 'agenda' || saved === 'grid') {
+      viewFormat = saved;
+    }
+    updateFormatButtons();
+  }
+
+  function setViewFormat(format) {
+    viewFormat = format;
+    localStorage.setItem(FORMAT_KEY, format);
+    updateFormatButtons();
+    render();
+  }
+
+  function updateFormatButtons() {
+    if (viewFormat === 'grid') {
+      calendarViewContainer.classList.remove('hidden');
+      agendaViewContainer.classList.add('hidden');
+      gridFilterContainer.classList.remove('hidden');
+      formatGridBtn.className = 'px-2.5 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white flex items-center gap-1';
+      formatAgendaBtn.className = 'px-2.5 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1';
+    } else {
+      calendarViewContainer.classList.add('hidden');
+      agendaViewContainer.classList.remove('hidden');
+      gridFilterContainer.classList.add('hidden');
+      formatAgendaBtn.className = 'px-2.5 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white flex items-center gap-1';
+      formatGridBtn.className = 'px-2.5 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1';
+    }
+  }
+
   // --- NAČÍTÁNÍ A UKLÁDÁNÍ DAT ---
   function loadTrainingsData() {
     try {
@@ -102,18 +143,16 @@
       if (saved) {
         trainingsData = JSON.parse(saved);
       } else {
-        // Zkusit starší klíč pokud existuje
         const oldSaved = localStorage.getItem('training_calendar_data_v1');
         if (oldSaved) {
           trainingsData = JSON.parse(oldSaved);
         } else {
-          // První spuštění: nachystat vzorová šachová data pro aktuální měsíc
           trainingsData = seedInitialChessData();
         }
         saveTrainingsData();
       }
     } catch (e) {
-      console.error('Chyba při načítání dat z localStorage:', e);
+      console.error('Chyba při načítání dat:', e);
       trainingsData = {};
     }
   }
@@ -126,7 +165,6 @@
     }
   }
 
-  // Vytvoření vzorových šachových tréninků pro středy a čtvrtky
   function seedInitialChessData() {
     const data = {};
     const now = new Date();
@@ -145,7 +183,7 @@
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dayOfWeek = date.getDay(); // 3 = Středa, 4 = Čtvrtek
+      const dayOfWeek = date.getDay();
       const dateKey = formatDateKey(date);
 
       if (dayOfWeek === 3 || dayOfWeek === 4) {
@@ -160,7 +198,6 @@
             updatedAt: Date.now()
           };
         } else {
-          // Budoucí tréninkový den
           data[dateKey] = {
             completed: true,
             count: 1,
@@ -174,7 +211,6 @@
     return data;
   }
 
-  // Pomocný formát data: YYYY-MM-DD
   function formatDateKey(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -195,53 +231,60 @@
     return `${dow}, ${day}. ${month} ${year}`;
   }
 
-  // --- VYKRESLENÍ KALENDÁŘE ---
-  function renderCalendar() {
+  // --- HLAVNÍ VYKRESLENÍ ---
+  function render() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-
-    // Nadpis měsíce např. "Říjen 2026"
     currentMonthDisplay.textContent = `${CZECH_MONTHS[month]} ${year}`;
 
-    // Vyčistit mřížku
-    calendarGrid.innerHTML = '';
-
-    // Výpočet dnů
-    const firstDayOfMonth = new Date(year, month, 1);
-    const lastDayOfMonth = new Date(year, month + 1, 0);
-    const totalDays = lastDayOfMonth.getDate();
-
-    // Pondělí jako 1. den v týdnu (v JS je Neděle 0)
-    let startingDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
-
-    // Dny z předchozího měsíce
-    const prevMonthLastDay = new Date(year, month, 0).getDate();
-    for (let i = startingDayIndex - 1; i >= 0; i--) {
-      const prevDate = new Date(year, month - 1, prevMonthLastDay - i);
-      const cell = createDayCell(prevDate, true);
-      calendarGrid.appendChild(cell);
-    }
-
-    // Dny aktuálního měsíce
-    for (let day = 1; day <= totalDays; day++) {
-      const date = new Date(year, month, day);
-      const cell = createDayCell(date, false);
-      calendarGrid.appendChild(cell);
-    }
-
-    // Dny z následujícího měsíce do konce řádku
-    const totalRendered = startingDayIndex + totalDays;
-    const remainingCells = (totalRendered % 7 === 0) ? 0 : 7 - (totalRendered % 7);
-    for (let day = 1; day <= remainingCells; day++) {
-      const nextDate = new Date(year, month + 1, day);
-      const cell = createDayCell(nextDate, true);
-      calendarGrid.appendChild(cell);
+    if (viewFormat === 'grid') {
+      renderCalendarGrid();
+    } else {
+      renderAgendaView();
     }
 
     updateStats();
   }
 
-  function createDayCell(date, isOutsideMonth) {
+  // --- VYKRESLENÍ MŘÍŽKY (RESPONZIVNÍ PRO MOBIL) ---
+  function renderCalendarGrid() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    calendarDaysGrid.innerHTML = '';
+
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const totalDays = lastDayOfMonth.getDate();
+
+    let startingDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
+
+    // Dny předchozího měsíce
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+    for (let i = startingDayIndex - 1; i >= 0; i--) {
+      const prevDate = new Date(year, month - 1, prevMonthLastDay - i);
+      const cell = createGridCell(prevDate, true);
+      calendarDaysGrid.appendChild(cell);
+    }
+
+    // Dny aktuálního měsíce
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month, day);
+      const cell = createGridCell(date, false);
+      calendarDaysGrid.appendChild(cell);
+    }
+
+    // Dny následujícího měsíce
+    const totalRendered = startingDayIndex + totalDays;
+    const remainingCells = (totalRendered % 7 === 0) ? 0 : 7 - (totalRendered % 7);
+    for (let day = 1; day <= remainingCells; day++) {
+      const nextDate = new Date(year, month + 1, day);
+      const cell = createGridCell(nextDate, true);
+      calendarDaysGrid.appendChild(cell);
+    }
+  }
+
+  function createGridCell(date, isOutsideMonth) {
     const cell = document.createElement('div');
     const dateKey = formatDateKey(date);
     const dayOfWeek = date.getDay(); // 3 = Středa, 4 = Čtvrtek
@@ -257,26 +300,25 @@
     const count = entry.count || 0;
     const hasNote = Boolean(entry.notes && entry.notes.trim().length > 0);
 
-    // Filtr zaměření pouze na St & Čt
     if (viewFilter === 'wed-thu' && !isTrainingDay && !isOutsideMonth) {
-      cell.classList.add('opacity-25', 'grayscale', 'pointer-events-none');
+      cell.classList.add('opacity-20', 'grayscale', 'pointer-events-none');
     }
 
-    // Třídy pro buňku
-    cell.className = `day-cell relative min-h-[135px] p-2.5 sm:p-3 flex flex-col justify-between border-b border-r border-slate-200 dark:border-slate-800 transition-all ${
+    // Třídy buňky (výška zmenšena na mobilu pro přehlednost, p-1.5 na mobilu, p-3 na desktopu)
+    cell.className = `day-cell relative min-h-[76px] sm:min-h-[135px] p-1.5 sm:p-3 flex flex-col justify-between border-b border-r border-slate-200 dark:border-slate-800 transition-all select-none ${
       isOutsideMonth
         ? 'bg-slate-50/50 dark:bg-slate-900/40 opacity-40'
         : isTrainingDay
-          ? 'bg-indigo-50/20 dark:bg-indigo-950/20'
+          ? 'bg-indigo-50/25 dark:bg-indigo-950/25'
           : 'bg-white dark:bg-slate-900'
     } ${isToday ? 'ring-2 ring-inset ring-brand-500' : ''}`;
 
-    // Horní řádek: Číslo dne + Odznáček dne (St / Čt)
+    // HORNÍ ŘÁDEK: Číslo dne + Indikátor tréninku
     const topRow = document.createElement('div');
-    topRow.className = 'flex items-center justify-between gap-1';
+    topRow.className = 'flex items-center justify-between gap-0.5 sm:gap-1';
 
     const dayNumSpan = document.createElement('span');
-    dayNumSpan.className = `text-sm font-bold flex items-center justify-center w-7 h-7 rounded-lg ${
+    dayNumSpan.className = `text-xs sm:text-sm font-bold flex items-center justify-center w-5 h-5 sm:w-7 sm:h-7 rounded-lg ${
       isToday
         ? 'bg-brand-500 text-white font-extrabold shadow-sm'
         : isOutsideMonth
@@ -290,19 +332,20 @@
     badgeContainer.className = 'flex items-center gap-1';
 
     if (isTrainingDay && !isOutsideMonth) {
+      // Na mobilu kompaktní tečka / na desktopu text
       const targetBadge = document.createElement('span');
-      targetBadge.className = `text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded tracking-wider ${
+      targetBadge.className = `text-[9px] sm:text-[10px] font-extrabold uppercase px-1 sm:px-1.5 py-0.5 rounded tracking-wider ${
         isCompleted
           ? 'bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300'
           : 'bg-schedule-100 text-schedule-700 dark:bg-schedule-900/60 dark:text-schedule-300'
       }`;
-      targetBadge.textContent = isWed ? 'Středa' : 'Čtvrtek';
+      targetBadge.innerHTML = `<span class="sm:hidden">${isWed ? 'St' : 'Čt'}</span><span class="hidden sm:inline">${isWed ? 'Středa' : 'Čtvrtek'}</span>`;
       badgeContainer.appendChild(targetBadge);
     }
 
     if (hasNote) {
       const noteBadge = document.createElement('span');
-      noteBadge.className = 'w-2 h-2 rounded-full bg-amber-500 inline-block';
+      noteBadge.className = 'w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-500 inline-block shrink-0';
       noteBadge.title = 'Obsahuje poznámku k tréninku';
       badgeContainer.appendChild(noteBadge);
     }
@@ -310,14 +353,13 @@
     topRow.appendChild(badgeContainer);
     cell.appendChild(topRow);
 
-    // Střed: Tlačítko odškrtnutí & Počet tréninků
+    // STŘED: Tlačítko odškrtnutí (Plně adaptivní pro mobil i desktop)
     const midContent = document.createElement('div');
-    midContent.className = 'my-2 flex flex-col gap-1.5';
+    midContent.className = 'my-1 sm:my-2 flex flex-col gap-1';
 
-    // Tlačítko se symbolem zaškrtnutí
     const checkBtn = document.createElement('button');
     checkBtn.type = 'button';
-    checkBtn.className = `w-full py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-between border transition-all ${
+    checkBtn.className = `w-full py-1 sm:py-1.5 px-1 sm:px-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-semibold flex items-center justify-between border transition-all active:scale-95 ${
       isCompleted
         ? 'bg-brand-500 hover:bg-brand-600 border-brand-600 text-white shadow-sm check-pop'
         : isTrainingDay
@@ -326,17 +368,17 @@
     }`;
 
     checkBtn.innerHTML = `
-      <div class="flex items-center gap-1.5">
-        <span class="w-4 h-4 rounded-md flex items-center justify-center ${
+      <div class="flex items-center gap-1 sm:gap-1.5 min-w-0">
+        <span class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded flex items-center justify-center shrink-0 ${
           isCompleted
             ? 'bg-white/20 text-white'
             : 'border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900'
         }">
-          ${isCompleted ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+          ${isCompleted ? '<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
         </span>
-        <span class="truncate">${isCompleted ? 'Splněno' : (isTrainingDay ? 'Trénink' : 'Zapsat')}</span>
+        <span class="truncate hidden sm:inline">${isCompleted ? 'Splněno' : (isTrainingDay ? 'Trénink' : 'Zapsat')}</span>
       </div>
-      <span class="font-mono text-[11px] font-bold opacity-90">${count > 0 ? `${count}x` : '-'}</span>
+      <span class="font-mono text-[10px] sm:text-[11px] font-bold opacity-90">${count > 0 ? `${count}x` : (isCompleted ? '✓' : '-')}</span>
     `;
 
     checkBtn.addEventListener('click', (e) => {
@@ -345,17 +387,17 @@
     });
     midContent.appendChild(checkBtn);
 
-    // Přímé počítadlo počtu tréninků (+ / -)
+    // Přímé počítadlo počtu tréninků (Na desktopu zobrazeno, na mobilu v modálu)
     if (isCompleted || isTrainingDay) {
       const counterRow = document.createElement('div');
-      counterRow.className = 'flex items-center justify-between px-1 text-[11px] font-medium text-slate-500 dark:text-slate-400';
+      counterRow.className = 'hidden sm:flex items-center justify-between px-1 text-[11px] font-medium text-slate-500 dark:text-slate-400';
       
       counterRow.innerHTML = `
         <span class="text-[10px]">Tréninky:</span>
         <div class="flex items-center gap-1">
-          <button type="button" class="minus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none" title="Ubrat trénink">-</button>
+          <button type="button" class="minus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none">-</button>
           <span class="w-4 text-center font-mono font-bold text-slate-900 dark:text-white">${count}</span>
-          <button type="button" class="plus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none" title="Přidat trénink">+</button>
+          <button type="button" class="plus-btn w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-bold text-slate-700 dark:text-slate-300 leading-none">+</button>
         </div>
       `;
 
@@ -374,9 +416,9 @@
 
     cell.appendChild(midContent);
 
-    // Spodní řádek: Náhled poznámky nebo výzva k přidání
+    // SPODNÍ ŘÁDEK: Poznámka / Výzva k otevření
     const bottomRow = document.createElement('div');
-    bottomRow.className = 'mt-auto pt-1 border-t border-slate-100 dark:border-slate-800/80 cursor-pointer';
+    bottomRow.className = 'mt-auto pt-0.5 sm:pt-1 border-t border-slate-100 dark:border-slate-800/80 cursor-pointer hidden sm:block';
 
     if (hasNote) {
       const noteSnippet = document.createElement('div');
@@ -391,7 +433,7 @@
       addPrompt.className = 'text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1';
       addPrompt.innerHTML = `
         <span class="text-xs">+</span>
-        <span>${isTrainingDay ? 'Poznámka k partii' : 'Zapsat poznámku'}</span>
+        <span>${isTrainingDay ? 'Poznámka' : 'Zápis'}</span>
       `;
       bottomRow.appendChild(addPrompt);
     }
@@ -402,6 +444,112 @@
 
     cell.appendChild(bottomRow);
     return cell;
+  }
+
+  // --- VYKRESLENÍ SEZNAMU / AGENDY (IDEÁLNÍ PRO MOBILNÍ TELEFON) ---
+  function renderAgendaView() {
+    agendaCardsList.innerHTML = '';
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let targetDaysCount = 0;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dow = date.getDay(); // 3 = Středa, 4 = Čtvrtek
+      const isWed = dow === 3;
+      const isThu = dow === 4;
+      const isTarget = isWed || isThu;
+      const key = formatDateKey(date);
+      const entry = trainingsData[key] || { completed: false, count: 0, notes: '', tags: [] };
+
+      // V agendě zobrazujeme všechny Středy a Čtvrtky, plus dny s aktivním tréninkem
+      if (isTarget || entry.completed) {
+        targetDaysCount++;
+        const card = createAgendaCard(date, key, isTarget, isWed, entry);
+        agendaCardsList.appendChild(card);
+      }
+    }
+
+    if (targetDaysCount === 0) {
+      agendaCardsList.innerHTML = `
+        <div class="text-center py-10 text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+          <p class="text-2xl mb-2">♟️</p>
+          <p class="text-sm font-semibold">Žádné tréninky v tomto měsíci</p>
+        </div>
+      `;
+    }
+  }
+
+  function createAgendaCard(date, dateKey, isTarget, isWed, entry) {
+    const card = document.createElement('div');
+    const isToday = dateKey === formatDateKey(new Date());
+    const isCompleted = entry.completed;
+    const count = entry.count || 0;
+    const hasNotes = Boolean(entry.notes && entry.notes.trim().length > 0);
+
+    card.className = `p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
+      isCompleted
+        ? 'bg-white dark:bg-slate-900 border-brand-500/40 shadow-sm'
+        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+    } ${isToday ? 'ring-2 ring-brand-500' : ''}`;
+
+    const dateFormatted = formatCzechDateFull(date);
+
+    card.innerHTML = `
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-sm font-bold text-slate-900 dark:text-white">${dateFormatted}</span>
+            ${isTarget ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${isCompleted ? 'bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-300' : 'bg-schedule-100 text-schedule-700 dark:bg-schedule-900/60 dark:text-schedule-300'}">${isWed ? 'Středa' : 'Čtvrtek'}</span>` : ''}
+            ${isToday ? '<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-500 text-white">Dnes</span>' : ''}
+          </div>
+          
+          <div class="mt-2 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <span class="flex items-center gap-1">
+              <span class="font-semibold text-slate-700 dark:text-slate-300">Počet tréninků:</span>
+              <span class="font-mono font-bold text-slate-900 dark:text-white px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded">${count}x</span>
+            </span>
+            ${entry.tags && entry.tags.length > 0 ? `<span class="text-slate-400">&bull;</span> <span class="truncate max-w-[150px] text-brand-600 dark:text-brand-400 font-medium">${entry.tags.join(', ')}</span>` : ''}
+          </div>
+
+          ${hasNotes ? `
+            <div class="mt-2.5 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2 border border-slate-100 dark:border-slate-800">
+              <span class="shrink-0 text-sm">♟️</span>
+              <p class="italic leading-relaxed">${escapeHtml(entry.notes)}</p>
+            </div>
+          ` : `
+            <p class="mt-2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex items-center gap-1">
+              <span>+ Přidat poznámku k partii</span>
+            </p>
+          `}
+        </div>
+
+        <button type="button" class="agenda-check-btn shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center border transition-all active:scale-95 ${
+          isCompleted
+            ? 'bg-brand-500 border-brand-600 text-white shadow-md shadow-brand-500/20'
+            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600'
+        }" title="Přepnout splnění tréninku">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </button>
+      </div>
+    `;
+
+    // Tlačítko odškrtnutí
+    card.querySelector('.agenda-check-btn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDayCompletion(dateKey, isTarget);
+    });
+
+    // Celá karta otevírá modál
+    card.addEventListener('click', () => {
+      openDayModal(dateKey, date, isTarget);
+    });
+
+    return card;
   }
 
   // --- AKCE A ZMĚNY STAVU ---
@@ -424,7 +572,7 @@
     }
 
     saveTrainingsData();
-    renderCalendar();
+    render();
   }
 
   function adjustDayCount(dateKey, delta) {
@@ -447,10 +595,9 @@
     }
 
     saveTrainingsData();
-    renderCalendar();
+    render();
   }
 
-  // Označit nebo odznačit všechny středy a čtvrtky v měsíci
   function bulkToggleWedThu() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -497,7 +644,7 @@
     }
 
     saveTrainingsData();
-    renderCalendar();
+    render();
   }
 
   // --- MODÁLNÍ OKNO PRO DETAIL DNE ---
@@ -505,23 +652,20 @@
     selectedDateKey = dateKey;
     const entry = trainingsData[dateKey] || { completed: false, count: isTrainingDay ? 1 : 0, notes: '', tags: [] };
 
-    // Titulek v češtině
     modalDateTitle.textContent = formatCzechDateFull(date);
 
     if (isTrainingDay) {
-      modalBadgeDay.textContent = date.getDay() === 3 ? 'Středeční šachový trénink' : 'Čtvrteční šachový trénink';
+      modalBadgeDay.textContent = date.getDay() === 3 ? 'Středeční trénink' : 'Čtvrteční trénink';
       modalBadgeDay.classList.remove('hidden');
     } else {
       modalBadgeDay.classList.add('hidden');
     }
 
-    // Vyplnění polí
     modalCompletedToggle.checked = Boolean(entry.completed);
     updateModalStatusLabel(Boolean(entry.completed));
     modalCountInput.value = entry.count !== undefined ? entry.count : (entry.completed ? 1 : 0);
     modalNotesInput.value = entry.notes || '';
 
-    // Štítky
     const activeTags = entry.tags || [];
     quickTagButtons.forEach(btn => {
       const tag = btn.dataset.tag;
@@ -534,13 +678,11 @@
       }
     });
 
-    // Zobrazení s animací
     dayModal.classList.remove('hidden');
     setTimeout(() => {
       const content = dayModal.querySelector('.modal-content');
       content.classList.remove('scale-95', 'opacity-0');
       content.classList.add('scale-100', 'opacity-100');
-      modalNotesInput.focus();
     }, 10);
   }
 
@@ -587,7 +729,7 @@
     };
 
     saveTrainingsData();
-    renderCalendar();
+    render();
     closeDayModal();
   }
 
@@ -595,7 +737,7 @@
     if (!selectedDateKey) return;
     delete trainingsData[selectedDateKey];
     saveTrainingsData();
-    renderCalendar();
+    render();
     closeDayModal();
   }
 
@@ -672,7 +814,7 @@
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(trainingsData, null, 2));
     const dlAnchorElem = document.createElement('a');
     dlAnchorElem.setAttribute('href', dataStr);
-    dlAnchorElem.setAttribute('download', `sachove_treninky_zaloha_${formatDateKey(new Date())}.json`);
+    dlAnchorElem.setAttribute('download', `sachove_treninky_${formatDateKey(new Date())}.json`);
     dlAnchorElem.click();
   }
 
@@ -714,14 +856,14 @@
         if (typeof imported === 'object' && imported !== null) {
           trainingsData = Object.assign({}, trainingsData, imported);
           saveTrainingsData();
-          renderCalendar();
+          render();
           exportModal.classList.add('hidden');
-          alert('Šachová tréninková data byla úspěšně obnovena!');
+          alert('Šachová data byla úspěšně obnovena!');
         } else {
           alert('Neplatný formát souboru. Nahrajte platný JSON soubor.');
         }
       } catch (err) {
-        alert('Chyba při čtení souboru se zálohou.');
+        alert('Chyba při čtení zálohy.');
       }
     };
     reader.readAsText(file);
@@ -731,33 +873,38 @@
   function setupEventListeners() {
     prevMonthBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
+      render();
     });
 
     nextMonthBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar();
+      render();
     });
 
     todayBtn.addEventListener('click', () => {
       currentDate = new Date();
-      renderCalendar();
+      render();
     });
 
     bulkCheckBtn.addEventListener('click', bulkToggleWedThu);
 
+    // Přepínač Mřížka / Seznam
+    formatGridBtn.addEventListener('click', () => setViewFormat('grid'));
+    formatAgendaBtn.addEventListener('click', () => setViewFormat('agenda'));
+
+    // Filtr dnů v mřížce
     viewAllBtn.addEventListener('click', () => {
       viewFilter = 'all';
-      viewAllBtn.className = 'px-2.5 py-1.5 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
-      viewFocusBtn.className = 'px-2.5 py-1.5 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-      renderCalendar();
+      viewAllBtn.className = 'px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
+      viewFocusBtn.className = 'px-2 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+      render();
     });
 
     viewFocusBtn.addEventListener('click', () => {
       viewFilter = 'wed-thu';
-      viewFocusBtn.className = 'px-2.5 py-1.5 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
-      viewAllBtn.className = 'px-2.5 py-1.5 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
-      renderCalendar();
+      viewFocusBtn.className = 'px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
+      viewAllBtn.className = 'px-2 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white';
+      render();
     });
 
     themeToggle.addEventListener('click', toggleTheme);
