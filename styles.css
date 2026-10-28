@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --primary: #10b981;
+  --primary-hover: #059669;
+  --primary-light: #ecfdf5;
+  --primary-dark: #064e3b;
+  --wed-thu-accent: #6366f1;
+  --wed-thu-bg: #eef2ff;
+  --bg-dark: #0f172a;
+  --card-dark: #1e293b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Glassmorphism effects */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.dark .glass-panel {
+  background: rgba(30, 41, 59, 0.85);
+}
+
+/* Calendar Day Cell Transition */
+.day-cell {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.day-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+}
+
+.dark .day-cell:hover {
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.35);
+}
+
+/* Wednesday & Thursday Special Pulsing / Highlight Border */
+.training-day-col {
+  background-color: rgba(99, 102, 241, 0.035);
+}
+
+.dark .training-day-col {
+  background-color: rgba(99, 102, 241, 0.07);
+}
+
+.training-day-header {
+  color: #4f46e5;
+  font-weight: 700;
+}
+
+.dark .training-day-header {
+  color: #818cf8;
+}
+
+/* Checkbox custom pulse on active */
+.custom-checkbox:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Micro animations */
+@keyframes checkmarkPop {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.check-pop {
+  animation: checkmarkPop 0.25s ease-out forwards;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+}
+
+.pulse-target {
+  animation: pulseGlow 2.5s infinite;
+}
+
+/* Modal animation */
+.modal-overlay {
+  transition: opacity 0.2s ease;
+}
+
+.modal-content {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+}
+
+/* Tooltip */
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .day-cell {
+    border: 1px solid #ccc !important;
+    break-inside: avoid;
+  }
+}
