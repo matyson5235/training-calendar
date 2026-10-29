@@ -12,10 +12,11 @@
   const PIN_HASH_KEY = 'portal_master_pin_hash_v1';
   const ACTIVE_TAB_KEY = 'portal_active_tab_v1';
   const SALT = 'secret_apartmany_tobias_2026_salt';
+  const DEFAULT_PIN = '1234';
 
   // Default pre-computed SHA-256 hash for PIN "1234":
   // sha256("1234" + SALT)
-  const DEFAULT_PIN_HASH = '179be1907cb50cb05a8d9b158525b68df004314c19ba88d9047b744a71399ee8';
+  const DEFAULT_PIN_HASH = '982d168dd57cb17c80913a8f0dbcf3ad99ea643ce282565668ffcd02f61d0180';
 
   // English Months and Days
   const MONTHS = [
@@ -113,7 +114,12 @@
   }
 
   function getStoredPinHash() {
-    return localStorage.getItem(PIN_HASH_KEY) || DEFAULT_PIN_HASH;
+    const stored = localStorage.getItem(PIN_HASH_KEY);
+    // Auto-clean any legacy corrupted hash
+    if (!stored || stored === '179be1907cb50cb05a8d9b158525b68df004314c19ba88d9047b744a71399ee8') {
+      return DEFAULT_PIN_HASH;
+    }
+    return stored;
   }
 
   // --- SECURITY & AUTHENTICATION ---
@@ -135,9 +141,17 @@
     const enteredHash = await computeHash(enteredPin);
     const expectedHash = getStoredPinHash();
 
-    if (enteredHash === expectedHash) {
+    const storedHash = localStorage.getItem(PIN_HASH_KEY);
+    const hasCustomPin = Boolean(storedHash && storedHash !== '179be1907cb50cb05a8d9b158525b68df004314c19ba88d9047b744a71399ee8' && storedHash !== DEFAULT_PIN_HASH);
+    
+    // Unlock succeeds if:
+    // 1. Matches expected hash, OR
+    // 2. Default PIN "1234" is entered and no custom PIN is active
+    const isUnlocked = (enteredHash === expectedHash) || (!hasCustomPin && (enteredPin === DEFAULT_PIN || enteredHash === DEFAULT_PIN_HASH));
+
+    if (isUnlocked) {
       lockErrorMsg.classList.add('hidden');
-      if (rememberMeCheckbox.checked) {
+      if (rememberMeCheckbox && rememberMeCheckbox.checked) {
         localStorage.setItem(AUTH_KEY, 'true');
       }
       sessionStorage.setItem(AUTH_KEY, 'true');
@@ -213,7 +227,11 @@
     const oldHash = await computeHash(oldPin);
     const expectedHash = getStoredPinHash();
 
-    if (oldHash !== expectedHash) {
+    const storedHash = localStorage.getItem(PIN_HASH_KEY);
+    const hasCustomPin = Boolean(storedHash && storedHash !== '179be1907cb50cb05a8d9b158525b68df004314c19ba88d9047b744a71399ee8' && storedHash !== DEFAULT_PIN_HASH);
+    const isOldValid = (oldHash === expectedHash) || (!hasCustomPin && (oldPin === DEFAULT_PIN || oldHash === DEFAULT_PIN_HASH));
+
+    if (!isOldValid) {
       showChangePinMsg('Current PIN is incorrect.', 'text-rose-500');
       return;
     }
@@ -1044,6 +1062,14 @@
 
   // --- EVENT LISTENERS ---
   function setupEventListeners() {
+    const lockForm = document.getElementById('lock-form');
+    if (lockForm) {
+      lockForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        handleUnlockAttempt();
+      });
+    }
+
     lockPortalBtn.addEventListener('click', lockPortal);
     togglePinVisibilityBtn.addEventListener('click', togglePinVisibility);
 
