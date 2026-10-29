@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Tajný portál aplikací • secret.apartmanytobias.cz</title>
+  <title>Secret Apps Portal • secret.apartmanytobias.cz</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -42,28 +42,28 @@
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
   <!-- ========================================== -->
-  <!-- 🔒 BEZPEČNOSTNÍ ZÁMEK (LOCK SCREEN) -->
+  <!-- 🔒 SECURITY LOCK SCREEN -->
   <!-- ========================================== -->
   <div id="portal-lock-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950 text-white select-none">
     <div class="max-w-sm w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-center relative overflow-hidden">
       
-      <!-- Dekorativní pozadí -->
+      <!-- Background glowing accents -->
       <div class="absolute -top-16 -left-16 w-36 h-36 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
       <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-schedule-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
-      <!-- Ikona zámku -->
+      <!-- Lock Shield Icon -->
       <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-brand-600 to-schedule-600 flex items-center justify-center text-2xl shadow-lg shadow-brand-500/20">
         🔒
       </div>
 
       <h2 class="text-xl font-bold tracking-tight text-white mb-1">
-        Tajný portál
+        Secret Apps Portal
       </h2>
       <p class="text-xs text-slate-400 font-mono mb-6">
         secret.apartmanytobias.cz
       </p>
 
-      <!-- PIN / Heslo vstup -->
+      <!-- PIN Input Form -->
       <form id="lock-form" onsubmit="event.preventDefault(); handleUnlockAttempt();" class="space-y-4">
         
         <div class="relative">
@@ -72,21 +72,21 @@
             id="lock-pin-input" 
             maxlength="16" 
             inputmode="numeric" 
-            placeholder="Zadejte PIN (výchozí: 1234)" 
+            placeholder="Enter PIN (Default: 1234)" 
             autocomplete="current-password"
             class="w-full text-center text-lg tracking-widest font-mono py-3 px-4 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all placeholder:text-xs placeholder:tracking-normal placeholder:text-slate-500"
           >
-          <button type="button" id="toggle-pin-visibility" class="absolute right-3 top-3 text-slate-400 hover:text-white text-xs py-0.5 px-1.5 rounded">
+          <button type="button" id="toggle-pin-visibility" class="absolute right-3 top-3 text-slate-400 hover:text-white text-xs py-0.5 px-1.5 rounded" title="Toggle visibility">
             👁️
           </button>
         </div>
 
-        <!-- Chybová hláška -->
+        <!-- Error Message -->
         <p id="lock-error-msg" class="text-xs text-rose-400 font-medium hidden">
-          Nesprávný PIN. Zkuste to znovu.
+          Incorrect PIN. Please try again.
         </p>
 
-        <!-- Numerická klávesnice pro telefony -->
+        <!-- Touch Numpad for Mobile / Quick Access -->
         <div class="grid grid-cols-3 gap-2 pt-2">
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('1')">1</button>
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('2')">2</button>
@@ -97,19 +97,19 @@
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('7')">7</button>
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('8')">8</button>
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('9')">9</button>
-          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-rose-400 font-semibold text-sm border border-slate-700/60" onclick="clearPinInput()">Smazat</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-rose-400 font-semibold text-sm border border-slate-700/60" onclick="clearPinInput()">Clear</button>
           <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('0')">0</button>
-          <button type="submit" class="pin-btn py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm border border-brand-400 shadow-md shadow-brand-500/20">Vstoupit</button>
+          <button type="submit" class="pin-btn py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm border border-brand-400 shadow-md shadow-brand-500/20">Unlock</button>
         </div>
 
-        <!-- Pamatovat si na 30 dní -->
+        <!-- Remember Me Checkbox -->
         <label class="flex items-center justify-center gap-2 text-xs text-slate-400 cursor-pointer pt-2">
           <input type="checkbox" id="remember-me-checkbox" checked class="rounded border-slate-700 text-brand-500 focus:ring-brand-500">
-          <span>Pamatovat si mě na tomto zařízení</span>
+          <span>Remember me on this device</span>
         </label>
 
         <p class="text-[11px] text-slate-500 pt-2">
-          Výchozí PIN je <span class="font-mono text-slate-300 font-semibold">1234</span>. V portálu jej můžete kdykoliv změnit.
+          Default PIN is <span class="font-mono text-slate-300 font-semibold">1234</span>. You can change it anytime in portal settings.
         </p>
 
       </form>
@@ -117,15 +117,15 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- 🌐 ODEMČENÝ PORTÁL APLIKACÍ -->
+  <!-- 🌐 UNLOCKED PORTAL WRAPPER -->
   <!-- ========================================== -->
   <div id="main-portal-wrapper" class="flex-1 flex flex-col">
 
-    <!-- Hlavní lišta portálu s přepínačem aplikací -->
+    <!-- Header / Navigation Bar with App Switcher -->
     <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 no-print">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
         
-        <!-- Logo a Přepínač aplikací (Tabs) -->
+        <!-- Logo and App Switcher Tabs -->
         <div class="flex items-center space-x-2 sm:space-x-4 min-w-0">
           
           <div class="flex items-center space-x-2 shrink-0">
@@ -133,11 +133,11 @@
             <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white hidden md:inline">secret.apartmanytobias.cz</span>
           </div>
 
-          <!-- Přepínač: Šachový kalendář vs BSS Autorestart -->
+          <!-- Tabs Switcher: Chess Tracker vs BSS Autorestart -->
           <div class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-xl flex items-center text-xs font-semibold border border-slate-200 dark:border-slate-700">
             <button id="nav-tab-sachy" class="px-2.5 sm:px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white flex items-center gap-1.5">
               <span>♟️</span>
-              <span class="truncate">Šachy</span>
+              <span class="truncate">Chess Tracker</span>
             </button>
             <button id="nav-tab-bss" class="px-2.5 sm:px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
               <span>🐝</span>
@@ -147,23 +147,23 @@
 
         </div>
 
-        <!-- Akční tlačítka vpravo: Změnit PIN, Zámek, Motiv -->
+        <!-- Right Side Controls: Change PIN, Lock, Theme -->
         <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
           
-          <!-- Tlačítko změny PINu -->
-          <button id="change-pin-modal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Změnit bezpečnostní PIN">
+          <!-- Change PIN Button -->
+          <button id="change-pin-modal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Change Security PIN">
             <span class="text-xs">⚙️</span>
             <span class="hidden sm:inline ml-1">PIN</span>
           </button>
 
-          <!-- Tlačítko pro okamžité zamčení -->
-          <button id="lock-portal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-bold rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 transition-colors flex items-center gap-1" title="Okamžitě zamknout portál">
+          <!-- Immediate Lock Button -->
+          <button id="lock-portal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-bold rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 transition-colors flex items-center gap-1" title="Lock Portal Immediately">
             <span>🔒</span>
-            <span class="hidden sm:inline">Zamknout</span>
+            <span class="hidden sm:inline">Lock</span>
           </button>
 
-          <!-- Přepínač motivu -->
-          <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors" aria-label="Přepnout motiv">
+          <!-- Theme Toggle -->
+          <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors" aria-label="Toggle Theme">
             <svg id="sun-icon" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
             </svg>
@@ -178,30 +178,30 @@
     </header>
 
     <!-- ========================================== -->
-    <!-- APLIKACE 1: ŠACHOVÝ KALENDÁŘ TRÉNINKŮ -->
+    <!-- APP 1: CHESS TRAINING CALENDAR -->
     <!-- ========================================== -->
     <div id="app-view-sachy" class="app-view-panel max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full space-y-4 sm:space-y-6">
       
-      <!-- Statistiky & Přehledové karty -->
+      <!-- Stats & KPI Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 no-print">
         
-        <!-- Karta 1: Celkem tréninků za měsíc -->
+        <!-- Card 1: Total Trainings in Month -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Celkem</span>
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total</span>
             <span class="text-sm">♟️</span>
           </div>
           <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
             <span id="stat-total-trainings" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-            <span class="text-[11px] sm:text-xs text-slate-500">lekcí</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">sessions</span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">V tomto měsíci</p>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">This month</p>
         </div>
 
-        <!-- Karta 2: Úspěšnost Středa & Čtvrtek -->
+        <!-- Card 2: Wed & Thu Target Completion -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">St &amp; Čt</span>
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Wed &amp; Thu</span>
             <span class="text-schedule-500">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -212,13 +212,13 @@
             <span id="stat-wed-thu-completed" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0/0</span>
             <span id="stat-wed-thu-percent" class="text-[10px] sm:text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 px-1.5 py-0.5 rounded-full">0%</span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Splněné tréninky</p>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Target completed</p>
         </div>
 
-        <!-- Karta 3: Zapsané poznámky -->
+        <!-- Card 3: Game Logs / Notes Count -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rozbory</span>
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Game Notes</span>
             <span class="text-amber-500">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -227,15 +227,15 @@
           </div>
           <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
             <span id="stat-notes-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-            <span class="text-[11px] sm:text-xs text-slate-500">zápisů</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">entries</span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Poznámky k partiím</p>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Training reflections</p>
         </div>
 
-        <!-- Karta 4: Tréninková série -->
+        <!-- Card 4: Active Consecutive Streak -->
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
           <div class="flex items-center justify-between">
-            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Série</span>
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Streak</span>
             <span class="text-rose-500">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
@@ -244,29 +244,29 @@
           </div>
           <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
             <span id="stat-streak" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-            <span class="text-[11px] sm:text-xs text-slate-500">týdnů</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">weeks</span>
           </div>
-          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Pravidelnost</p>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Consistent training</p>
         </div>
 
       </div>
 
-      <!-- Navigace v kalendáři & Ovládání -->
+      <!-- Calendar Controls & Navigation Bar -->
       <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-5 shadow-sm space-y-3">
         
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center space-x-1 sm:space-x-2">
-            <button id="prev-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Předchozí měsíc">
+            <button id="prev-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Previous Month">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
               </svg>
             </button>
             
             <h2 id="current-month-display" class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-              Říjen 2026
+              October 2026
             </h2>
 
-            <button id="next-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Další měsíc">
+            <button id="next-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Next Month">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
               </svg>
@@ -275,67 +275,67 @@
 
           <div class="flex items-center gap-1.5">
             <button id="today-btn" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
-              Dnes
+              Today
             </button>
-            <button id="bulk-check-btn" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Označit všechny středy a čtvrtky">
+            <button id="bulk-check-btn" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Toggle checkmarks for all Wednesdays and Thursdays">
               <span class="text-brand-500">✓</span>
-              <span class="hidden sm:inline">Označit St &amp; Čt</span>
-              <span class="sm:hidden">St+Čt</span>
+              <span class="hidden sm:inline">Check Wed &amp; Thu</span>
+              <span class="sm:hidden">Wed+Thu</span>
             </button>
-            <button id="export-modal-btn" class="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Záloha">
-              📁 <span class="hidden sm:inline">Záloha</span>
+            <button id="export-modal-btn" class="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Backup / Export">
+              📁 <span class="hidden sm:inline">Backup</span>
             </button>
           </div>
         </div>
 
-        <!-- Přepínač zobrazení -->
+        <!-- View Format & Day Filter Bar -->
         <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
           <div class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
             <button id="format-grid-btn" class="px-2.5 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white flex items-center gap-1">
-              <span>Mřížka</span>
+              <span>Grid View</span>
             </button>
             <button id="format-agenda-btn" class="px-2.5 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
-              <span>Seznam (St &amp; Čt)</span>
+              <span>Agenda (Wed &amp; Thu)</span>
             </button>
           </div>
 
           <div id="grid-filter-container" class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
             <button id="view-all-btn" class="px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white">
-              Všechny dny
+              All Days
             </button>
             <button id="view-focus-btn" class="px-2 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-              Jen St &amp; Čt
+              Wed &amp; Thu Only
             </button>
           </div>
         </div>
 
       </div>
 
-      <!-- Mřížka kalendáře -->
+      <!-- Calendar Days Grid -->
       <div id="calendar-view-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div class="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-center font-bold text-[11px] sm:text-xs uppercase tracking-wider select-none">
-          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Po</span><span class="hidden sm:inline">Pondělí</span></div>
-          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Út</span><span class="hidden sm:inline">Úterý</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Mon</span><span class="hidden sm:inline">Monday</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Tue</span><span class="hidden sm:inline">Tuesday</span></div>
           <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-x border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
-            <span class="sm:hidden">St</span><span class="hidden sm:inline">Středa</span>
+            <span class="sm:hidden">Wed</span><span class="hidden sm:inline">Wednesday</span>
             <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
           </div>
           <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-r border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
-            <span class="sm:hidden">Čt</span><span class="hidden sm:inline">Čtvrtek</span>
+            <span class="sm:hidden">Thu</span><span class="hidden sm:inline">Thursday</span>
             <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
           </div>
-          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Pá</span><span class="hidden sm:inline">Pátek</span></div>
-          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">So</span><span class="hidden sm:inline">Sobota</span></div>
-          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Ne</span><span class="hidden sm:inline">Neděle</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Fri</span><span class="hidden sm:inline">Friday</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Sat</span><span class="hidden sm:inline">Saturday</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Sun</span><span class="hidden sm:inline">Sunday</span></div>
         </div>
         <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-800"></div>
       </div>
 
-      <!-- Seznam / Agenda tréninků -->
+      <!-- Agenda View -->
       <div id="agenda-view-container" class="hidden space-y-3">
         <div class="text-xs text-slate-500 dark:text-slate-400 px-1 flex items-center justify-between">
-          <span>Středeční a čtvrteční šachové tréninky v měsíci:</span>
-          <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">Kliknutím upravíte detail</span>
+          <span>Wednesday &amp; Thursday Chess Training Sessions:</span>
+          <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">Click card to edit details</span>
         </div>
         <div id="agenda-cards-list" class="space-y-2.5"></div>
       </div>
@@ -343,7 +343,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- APLIKACE 2: BSS AUTORESTART DASHBOARD -->
+    <!-- APP 2: BSS AUTORESTART DASHBOARD -->
     <!-- ========================================== -->
     <div id="app-view-bss" class="app-view-panel hidden flex-1 flex flex-col w-full bg-[#080b12] text-white">
       <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs text-slate-400">
@@ -353,10 +353,10 @@
         </div>
         <div class="flex items-center gap-2">
           <button onclick="document.getElementById('bss-frame').contentWindow.location.reload();" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
-            🔄 Obnovit
+            🔄 Refresh
           </button>
           <a href="bss.html" target="_blank" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
-            ↗️ Samostatné okno
+            ↗️ Open in New Window
           </a>
         </div>
       </div>
@@ -368,53 +368,53 @@
       ></iframe>
     </div>
 
-    <!-- Patička -->
+    <!-- Footer -->
     <footer class="mt-auto py-3 sm:py-5 border-t border-slate-200 dark:border-slate-800 text-center text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 no-print">
       <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1">
-        <p>🛡️ secret.apartmanytobias.cz &bull; Chráněný portál</p>
-        <p>Šachový kalendář &bull; BSS Autorestart</p>
+        <p>🛡️ secret.apartmanytobias.cz &bull; Protected Apps Portal</p>
+        <p>Chess Training Tracker &bull; BSS Autorestart</p>
       </div>
     </footer>
 
   </div>
 
   <!-- ========================================== -->
-  <!-- MODÁL: ZMĚNA BEZPEČNOSTNÍHO PINU -->
+  <!-- MODAL: CHANGE SECURITY PIN -->
   <!-- ========================================== -->
   <div id="change-pin-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm hidden">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
         <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <span>⚙️</span> Změna bezpečnostního PINu
+          <span>⚙️</span> Change Security PIN
         </h3>
         <button id="close-pin-modal-btn" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">✕</button>
       </div>
 
       <form id="change-pin-form" onsubmit="event.preventDefault(); handleChangePinSubmit();" class="py-4 space-y-3">
         <div>
-          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Současný PIN</label>
-          <input type="password" id="input-old-pin" placeholder="např. 1234" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Current PIN</label>
+          <input type="password" id="input-old-pin" placeholder="e.g. 1234" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nový PIN / Heslo</label>
-          <input type="password" id="input-new-pin" placeholder="Nový PIN (4-16 znaků)" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">New PIN / Password</label>
+          <input type="password" id="input-new-pin" placeholder="New PIN (4-16 characters)" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Potvrzení nového PINu</label>
-          <input type="password" id="input-confirm-pin" placeholder="Zadejte znovu nový PIN" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Confirm New PIN</label>
+          <input type="password" id="input-confirm-pin" placeholder="Re-enter new PIN" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
         </div>
 
         <p id="change-pin-msg" class="text-xs font-medium hidden"></p>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" id="cancel-change-pin-btn" class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Zrušit</button>
-          <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md">Uložit nový PIN</button>
+          <button type="button" id="cancel-change-pin-btn" class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Cancel</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md">Save New PIN</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modální okno: Detail dne -->
+  <!-- Day Detail Modal -->
   <div id="day-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm hidden modal-overlay mobile-bottom-sheet">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl modal-content mobile-sheet-content transform scale-95 opacity-0 overflow-y-auto max-h-[90vh]">
       <div class="w-12 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 mx-auto mb-3 sm:hidden"></div>
@@ -422,10 +422,10 @@
       <div class="flex items-start justify-between pb-3 sm:pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h3 id="modal-date-title" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">Středa, 28. října 2026</h3>
-            <span id="modal-badge-day" class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-schedule-100 text-schedule-700 dark:bg-schedule-900 dark:text-schedule-300">Tréninkový den</span>
+            <h3 id="modal-date-title" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">Wednesday, October 28, 2026</h3>
+            <span id="modal-badge-day" class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-schedule-100 text-schedule-700 dark:bg-schedule-900 dark:text-schedule-300">Training Day</span>
           </div>
-          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1">Kolik tréninků jste měli a jaké byly poznámky</p>
+          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1">Record how many sessions you completed and notes</p>
         </div>
         <button id="modal-close-btn" class="p-1.5 sm:p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">✕</button>
       </div>
@@ -434,8 +434,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
           <div class="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
             <div>
-              <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Stav tréninku</span>
-              <span id="modal-status-text" class="text-sm font-bold text-slate-800 dark:text-slate-200">Splněno</span>
+              <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Training Status</span>
+              <span id="modal-status-text" class="text-sm font-bold text-slate-800 dark:text-slate-200">Completed</span>
             </div>
             <label class="relative inline-flex items-center cursor-pointer p-1">
               <input type="checkbox" id="modal-completed-toggle" class="sr-only peer">
@@ -445,8 +445,8 @@
 
           <div class="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
             <div>
-              <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Počet tréninků</span>
-              <span class="text-[11px] text-slate-400">Kolik proběhlo?</span>
+              <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Trainings Count</span>
+              <span class="text-[11px] text-slate-400">How many had?</span>
             </div>
             <div class="flex items-center space-x-2">
               <button id="modal-count-minus" type="button" class="w-9 h-9 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold text-slate-700 dark:text-slate-200 flex items-center justify-center hover:bg-slate-100 transition-colors text-lg active:scale-95">-</button>
@@ -457,57 +457,61 @@
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Šachové zaměření (Rychlé štítky)</label>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Chess Focus (Quick Tags)</label>
           <div id="modal-quick-tags" class="flex flex-wrap gap-1.5">
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Taktika & Diagramy">♟️ Taktika</button>
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Teorie zahájení">📖 Zahájení</button>
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Rozbor vlastních partií">🔍 Rozbor partií</button>
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Trénink koncovek">👑 Koncovky</button>
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Cvičné partie / Bleskovky">⚔️ Partie</button>
-            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Lekce s trenérem / Klub">🧑‍🏫 Trenér / Klub</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Tactics & Puzzles">♟️ Tactics</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Opening Theory">📖 Openings</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Game Analysis">🔍 Analysis</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Endgame Studies">👑 Endgames</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Practice Games / Blitz">⚔️ Games</button>
+            <button type="button" class="tag-btn text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-500 text-slate-600 dark:text-slate-300 transition-colors active:scale-95" data-tag="Coach / Club Session">🧑‍🏫 Coach / Club</button>
           </div>
         </div>
 
         <div>
           <label for="modal-notes-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 mb-1.5">
-            <span>📝</span> Poznámky k šachovému tréninku
+            <span>📝</span> Training Notes &amp; Game Reflections
           </label>
-          <textarea id="modal-notes-input" rows="3" placeholder="Napište podrobnosti o trénincích..." class="w-full text-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white transition-all"></textarea>
+          <textarea id="modal-notes-input" rows="3" placeholder="Write details about your training (e.g. 2 trainings: 40m tactics on Lichess + 1h Sicilian analysis)..." class="w-full text-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white transition-all"></textarea>
         </div>
       </div>
 
       <div class="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button id="modal-clear-btn" type="button" class="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors py-2">Smazat</button>
+        <button id="modal-clear-btn" type="button" class="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors py-2">Clear</button>
         <div class="flex items-center gap-2">
-          <button id="modal-cancel-btn" type="button" class="px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Zrušit</button>
-          <button id="modal-save-btn" type="button" class="px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md active:scale-95">Uložit</button>
+          <button id="modal-cancel-btn" type="button" class="px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Cancel</button>
+          <button id="modal-save-btn" type="button" class="px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md active:scale-95">Save</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modál pro Export a Zálohování -->
+  <!-- Export / Backup Modal -->
   <div id="export-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm hidden mobile-bottom-sheet">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl mobile-sheet-content">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Správa šachových dat</h3>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Chess Data Management</h3>
         <button id="export-close-btn" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">✕</button>
       </div>
 
       <div class="py-4 space-y-3">
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+          All your training checkmarks, session counts, and notes are saved directly in your browser. Download backups anytime.
+        </p>
+
         <div class="space-y-2 pt-2">
           <button id="download-json-btn" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white transition-all">
-            <span>💾 Stáhnout zálohu (JSON)</span>
-            <span class="text-[11px] text-slate-400">Kompletní</span>
+            <span>💾 Download JSON Backup</span>
+            <span class="text-[11px] text-slate-400">Complete backup</span>
           </button>
           <button id="download-csv-btn" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white transition-all">
-            <span>📊 Exportovat tabulku (CSV)</span>
-            <span class="text-[11px] text-slate-400">Excel</span>
+            <span>📊 Export CSV Spreadsheet</span>
+            <span class="text-[11px] text-slate-400">Excel / Sheets</span>
           </button>
           <label class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white cursor-pointer transition-all">
-            <span>📥 Obnovit data ze souboru JSON</span>
+            <span>📥 Restore from JSON File</span>
             <input type="file" id="import-json-file" accept=".json" class="hidden">
-            <span class="text-[11px] text-slate-400">Vybrat</span>
+            <span class="text-[11px] text-slate-400">Choose file</span>
           </label>
         </div>
       </div>
