@@ -1,13 +1,21 @@
-// Šachový kalendář tréninků
-// Sledování středečních a čtvrtečních tréninků, počtu lekcí a rozborů
+// Tajný portál aplikací • secret.apartmanytobias.cz
+// Šachový kalendář & BSS Autorestart Dashboard
 
 (function () {
   'use strict';
 
-  // Klíče úložiště
+  // --- KLÍČE ÚLOŽIŠTĚ ---
   const STORAGE_KEY = 'chess_training_calendar_data_v2';
   const THEME_KEY = 'chess_training_calendar_theme';
   const FORMAT_KEY = 'chess_calendar_view_format';
+  const AUTH_KEY = 'portal_session_auth_v1';
+  const PIN_HASH_KEY = 'portal_master_pin_hash_v1';
+  const ACTIVE_TAB_KEY = 'portal_active_tab_v1';
+  const SALT = 'secret_apartmany_tobias_2026_salt';
+
+  // Výchozí hash pro PIN "1234" (předpočítaný pro offline a první spuštění)
+  // sha256("1234" + SALT)
+  const DEFAULT_PIN_HASH = '179be1907cb50cb05a8d9b158525b68df004314c19ba88d9047b744a71399ee8';
 
   // Názvy měsíců a dnů v češtině
   const CZECH_MONTHS = [
@@ -25,13 +33,34 @@
   ];
 
   // Stav aplikace
-  let currentDate = new Date(); // Zobrazený měsíc a rok
-  let trainingsData = {}; // Formát: { "YYYY-MM-DD": { completed: true, count: 1, notes: "...", tags: [] } }
+  let currentDate = new Date();
+  let trainingsData = {};
   let selectedDateKey = null;
-  let viewFilter = 'all'; // 'all' nebo 'wed-thu'
-  let viewFormat = 'grid'; // 'grid' nebo 'agenda'
+  let viewFilter = 'all';
+  let viewFormat = 'grid';
+  let isUnlocked = false;
 
-  // DOM Prvky
+  // DOM Prvky: Zámek
+  const portalLockScreen = document.getElementById('portal-lock-screen');
+  const lockPinInput = document.getElementById('lock-pin-input');
+  const lockErrorMsg = document.getElementById('lock-error-msg');
+  const rememberMeCheckbox = document.getElementById('remember-me-checkbox');
+  const togglePinVisibilityBtn = document.getElementById('toggle-pin-visibility');
+  const lockPortalBtn = document.getElementById('lock-portal-btn');
+
+  // DOM Prvky: Přepínač aplikací
+  const navTabSachy = document.getElementById('nav-tab-sachy');
+  const navTabBss = document.getElementById('nav-tab-bss');
+  const appViewSachy = document.getElementById('app-view-sachy');
+  const appViewBss = document.getElementById('app-view-bss');
+  const changePinModalBtn = document.getElementById('change-pin-modal-btn');
+  const changePinModal = document.getElementById('change-pin-modal');
+  const closePinModalBtn = document.getElementById('close-pin-modal-btn');
+  const cancelChangePinBtn = document.getElementById('cancel-change-pin-btn');
+  const changePinForm = document.getElementById('change-pin-form');
+  const changePinMsg = document.getElementById('change-pin-msg');
+
+  // DOM Prvky: Kalendář
   const calendarDaysGrid = document.getElementById('calendar-days-grid');
   const calendarViewContainer = document.getElementById('calendar-view-container');
   const agendaViewContainer = document.getElementById('agenda-view-container');
@@ -79,16 +108,182 @@
   const downloadCsvBtn = document.getElementById('download-csv-btn');
   const importJsonFile = document.getElementById('import-json-file');
 
-  // --- INICIALIZACE ---
+  // --- HASH FUNKCE (SHA-256) ---
+  async function computeHash(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text + SALT);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function getStoredPinHash() {
+    return localStorage.getItem(PIN_HASH_KEY) || DEFAULT_PIN_HASH;
+  }
+
+  // --- ZABEZPEČENÍ & AUTH ---
+  function checkSessionAuth() {
+    const sessionAuth = sessionStorage.getItem(AUTH_KEY);
+    const localAuth = localStorage.getItem(AUTH_KEY);
+
+    if (sessionAuth === 'true' || localAuth === 'true') {
+      unlockPortal(false);
+    } else {
+      lockPortal();
+    }
+  }
+
+  async function handleUnlockAttempt() {
+    const enteredPin = lockPinInput.value.trim();
+    if (!enteredPin) return;
+
+    const enteredHash = await computeHash(enteredPin);
+    const expectedHash = getStoredPinHash();
+
+    if (enteredHash === expectedHash) {
+      lockErrorMsg.classList.add('hidden');
+      if (rememberMeCheckbox.checked) {
+        localStorage.setItem(AUTH_KEY, 'true');
+      }
+      sessionStorage.setItem(AUTH_KEY, 'true');
+      unlockPortal(true);
+    } else {
+      lockErrorMsg.classList.remove('hidden');
+      lockPinInput.classList.add('shake-error', 'border-rose-500');
+      setTimeout(() => {
+        lockPinInput.classList.remove('shake-error', 'border-rose-500');
+      }, 500);
+      lockPinInput.value = '';
+      lockPinInput.focus();
+    }
+  }
+
+  function unlockPortal(animate) {
+    isUnlocked = true;
+    if (animate) {
+      portalLockScreen.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      portalLockScreen.style.opacity = '0';
+      portalLockScreen.style.transform = 'scale(1.03)';
+      setTimeout(() => {
+        portalLockScreen.classList.add('hidden');
+      }, 250);
+    } else {
+      portalLockScreen.classList.add('hidden');
+    }
+    loadActiveTab();
+    render();
+  }
+
+  function lockPortal() {
+    isUnlocked = false;
+    sessionStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(AUTH_KEY);
+    portalLockScreen.classList.remove('hidden');
+    portalLockScreen.style.opacity = '1';
+    portalLockScreen.style.transform = 'scale(1)';
+    lockPinInput.value = '';
+    lockErrorMsg.classList.add('hidden');
+    setTimeout(() => {
+      lockPinInput.focus();
+    }, 100);
+  }
+
+  // Pomocné funkce pro numerickou klávesnici (globální pro onclick v HTML)
+  window.appendPinDigit = function (digit) {
+    lockPinInput.value += digit;
+  };
+
+  window.clearPinInput = function () {
+    lockPinInput.value = '';
+    lockErrorMsg.classList.add('hidden');
+  };
+
+  window.handleUnlockAttempt = handleUnlockAttempt;
+
+  function togglePinVisibility() {
+    if (lockPinInput.type === 'password') {
+      lockPinInput.type = 'text';
+      togglePinVisibilityBtn.textContent = '🔒';
+    } else {
+      lockPinInput.type = 'password';
+      togglePinVisibilityBtn.textContent = '👁️';
+    }
+  }
+
+  // --- ZMĚNA PINU ---
+  async function handleChangePinSubmit() {
+    const oldPin = document.getElementById('input-old-pin').value.trim();
+    const newPin = document.getElementById('input-new-pin').value.trim();
+    const confirmPin = document.getElementById('input-confirm-pin').value.trim();
+
+    const oldHash = await computeHash(oldPin);
+    const expectedHash = getStoredPinHash();
+
+    if (oldHash !== expectedHash) {
+      showChangePinMsg('Současný PIN je nesprávný.', 'text-rose-500');
+      return;
+    }
+
+    if (newPin.length < 4) {
+      showChangePinMsg('Nový PIN musí mít alespoň 4 znaky.', 'text-rose-500');
+      return;
+    }
+
+    if (newPin !== confirmPin) {
+      showChangePinMsg('Nové PINy se neshodují.', 'text-rose-500');
+      return;
+    }
+
+    const newHash = await computeHash(newPin);
+    localStorage.setItem(PIN_HASH_KEY, newHash);
+    showChangePinMsg('PIN byl úspěšně změněn!', 'text-emerald-500');
+
+    setTimeout(() => {
+      changePinModal.classList.add('hidden');
+      changePinForm.reset();
+      changePinMsg.classList.add('hidden');
+    }, 1000);
+  }
+
+  function showChangePinMsg(msg, colorClass) {
+    changePinMsg.textContent = msg;
+    changePinMsg.className = `text-xs font-semibold ${colorClass}`;
+    changePinMsg.classList.remove('hidden');
+  }
+
+  window.handleChangePinSubmit = handleChangePinSubmit;
+
+  // --- PŘEPÍNAČ APLIKACÍ (TABS) ---
+  function setActiveTab(tab) {
+    localStorage.setItem(ACTIVE_TAB_KEY, tab);
+    if (tab === 'bss') {
+      navTabBss.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white flex items-center gap-1.5';
+      navTabSachy.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+      appViewSachy.classList.add('hidden');
+      appViewBss.classList.remove('hidden');
+    } else {
+      navTabSachy.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white flex items-center gap-1.5';
+      navTabBss.className = 'px-2.5 sm:px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5';
+      appViewBss.classList.add('hidden');
+      appViewSachy.classList.remove('hidden');
+      render();
+    }
+  }
+
+  function loadActiveTab() {
+    const saved = localStorage.getItem(ACTIVE_TAB_KEY) || 'sachy';
+    setActiveTab(saved);
+  }
+
+  // --- INICIALIZACE KALENDÁŘE ---
   function init() {
     loadTheme();
     loadTrainingsData();
     loadViewFormat();
     setupEventListeners();
-    render();
+    checkSessionAuth();
   }
 
-  // --- SPRÁVA MOTIVU ---
   function loadTheme() {
     const savedTheme = localStorage.getItem(THEME_KEY);
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -103,9 +298,7 @@
     localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
   }
 
-  // --- SPRÁVA POHLEDU (MŘÍŽKA VS SEZNAM) ---
   function loadViewFormat() {
-    // Na malých displejích můžeme respektovat uložený formát nebo nechat mřížku
     const saved = localStorage.getItem(FORMAT_KEY);
     if (saved === 'agenda' || saved === 'grid') {
       viewFormat = saved;
@@ -136,7 +329,6 @@
     }
   }
 
-  // --- NAČÍTÁNÍ A UKLÁDÁNÍ DAT ---
   function loadTrainingsData() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -231,8 +423,9 @@
     return `${dow}, ${day}. ${month} ${year}`;
   }
 
-  // --- HLAVNÍ VYKRESLENÍ ---
+  // --- RENDERING ---
   function render() {
+    if (!isUnlocked) return;
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     currentMonthDisplay.textContent = `${CZECH_MONTHS[month]} ${year}`;
@@ -246,7 +439,6 @@
     updateStats();
   }
 
-  // --- VYKRESLENÍ MŘÍŽKY (RESPONZIVNÍ PRO MOBIL) ---
   function renderCalendarGrid() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -259,7 +451,6 @@
 
     let startingDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
 
-    // Dny předchozího měsíce
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = startingDayIndex - 1; i >= 0; i--) {
       const prevDate = new Date(year, month - 1, prevMonthLastDay - i);
@@ -267,14 +458,12 @@
       calendarDaysGrid.appendChild(cell);
     }
 
-    // Dny aktuálního měsíce
     for (let day = 1; day <= totalDays; day++) {
       const date = new Date(year, month, day);
       const cell = createGridCell(date, false);
       calendarDaysGrid.appendChild(cell);
     }
 
-    // Dny následujícího měsíce
     const totalRendered = startingDayIndex + totalDays;
     const remainingCells = (totalRendered % 7 === 0) ? 0 : 7 - (totalRendered % 7);
     for (let day = 1; day <= remainingCells; day++) {
@@ -287,7 +476,7 @@
   function createGridCell(date, isOutsideMonth) {
     const cell = document.createElement('div');
     const dateKey = formatDateKey(date);
-    const dayOfWeek = date.getDay(); // 3 = Středa, 4 = Čtvrtek
+    const dayOfWeek = date.getDay();
     const isWed = dayOfWeek === 3;
     const isThu = dayOfWeek === 4;
     const isTrainingDay = isWed || isThu;
@@ -304,7 +493,6 @@
       cell.classList.add('opacity-20', 'grayscale', 'pointer-events-none');
     }
 
-    // Třídy buňky (výška zmenšena na mobilu pro přehlednost, p-1.5 na mobilu, p-3 na desktopu)
     cell.className = `day-cell relative min-h-[76px] sm:min-h-[135px] p-1.5 sm:p-3 flex flex-col justify-between border-b border-r border-slate-200 dark:border-slate-800 transition-all select-none ${
       isOutsideMonth
         ? 'bg-slate-50/50 dark:bg-slate-900/40 opacity-40'
@@ -313,7 +501,6 @@
           : 'bg-white dark:bg-slate-900'
     } ${isToday ? 'ring-2 ring-inset ring-brand-500' : ''}`;
 
-    // HORNÍ ŘÁDEK: Číslo dne + Indikátor tréninku
     const topRow = document.createElement('div');
     topRow.className = 'flex items-center justify-between gap-0.5 sm:gap-1';
 
@@ -332,7 +519,6 @@
     badgeContainer.className = 'flex items-center gap-1';
 
     if (isTrainingDay && !isOutsideMonth) {
-      // Na mobilu kompaktní tečka / na desktopu text
       const targetBadge = document.createElement('span');
       targetBadge.className = `text-[9px] sm:text-[10px] font-extrabold uppercase px-1 sm:px-1.5 py-0.5 rounded tracking-wider ${
         isCompleted
@@ -353,7 +539,6 @@
     topRow.appendChild(badgeContainer);
     cell.appendChild(topRow);
 
-    // STŘED: Tlačítko odškrtnutí (Plně adaptivní pro mobil i desktop)
     const midContent = document.createElement('div');
     midContent.className = 'my-1 sm:my-2 flex flex-col gap-1';
 
@@ -387,7 +572,6 @@
     });
     midContent.appendChild(checkBtn);
 
-    // Přímé počítadlo počtu tréninků (Na desktopu zobrazeno, na mobilu v modálu)
     if (isCompleted || isTrainingDay) {
       const counterRow = document.createElement('div');
       counterRow.className = 'hidden sm:flex items-center justify-between px-1 text-[11px] font-medium text-slate-500 dark:text-slate-400';
@@ -416,7 +600,6 @@
 
     cell.appendChild(midContent);
 
-    // SPODNÍ ŘÁDEK: Poznámka / Výzva k otevření
     const bottomRow = document.createElement('div');
     bottomRow.className = 'mt-auto pt-0.5 sm:pt-1 border-t border-slate-100 dark:border-slate-800/80 cursor-pointer hidden sm:block';
 
@@ -446,7 +629,6 @@
     return cell;
   }
 
-  // --- VYKRESLENÍ SEZNAMU / AGENDY (IDEÁLNÍ PRO MOBILNÍ TELEFON) ---
   function renderAgendaView() {
     agendaCardsList.innerHTML = '';
     const year = currentDate.getFullYear();
@@ -457,14 +639,13 @@
 
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(year, month, day);
-      const dow = date.getDay(); // 3 = Středa, 4 = Čtvrtek
+      const dow = date.getDay();
       const isWed = dow === 3;
       const isThu = dow === 4;
       const isTarget = isWed || isThu;
       const key = formatDateKey(date);
       const entry = trainingsData[key] || { completed: false, count: 0, notes: '', tags: [] };
 
-      // V agendě zobrazujeme všechny Středy a Čtvrtky, plus dny s aktivním tréninkem
       if (isTarget || entry.completed) {
         targetDaysCount++;
         const card = createAgendaCard(date, key, isTarget, isWed, entry);
@@ -530,7 +711,7 @@
           isCompleted
             ? 'bg-brand-500 border-brand-600 text-white shadow-md shadow-brand-500/20'
             : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600'
-        }" title="Přepnout splnění tréninku">
+        }">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
           </svg>
@@ -538,13 +719,11 @@
       </div>
     `;
 
-    // Tlačítko odškrtnutí
     card.querySelector('.agenda-check-btn').addEventListener('click', (e) => {
       e.stopPropagation();
       toggleDayCompletion(dateKey, isTarget);
     });
 
-    // Celá karta otevírá modál
     card.addEventListener('click', () => {
       openDayModal(dateKey, date, isTarget);
     });
@@ -552,7 +731,7 @@
     return card;
   }
 
-  // --- AKCE A ZMĚNY STAVU ---
+  // --- MUTACE DAT ---
   function toggleDayCompletion(dateKey, isTrainingDay) {
     if (!trainingsData[dateKey]) {
       trainingsData[dateKey] = {
@@ -647,7 +826,7 @@
     render();
   }
 
-  // --- MODÁLNÍ OKNO PRO DETAIL DNE ---
+  // --- DETAIL DNE MODÁL ---
   function openDayModal(dateKey, date, isTrainingDay) {
     selectedDateKey = dateKey;
     const entry = trainingsData[dateKey] || { completed: false, count: isTrainingDay ? 1 : 0, notes: '', tags: [] };
@@ -860,7 +1039,7 @@
           exportModal.classList.add('hidden');
           alert('Šachová data byla úspěšně obnovena!');
         } else {
-          alert('Neplatný formát souboru. Nahrajte platný JSON soubor.');
+          alert('Neplatný formát souboru.');
         }
       } catch (err) {
         alert('Chyba při čtení zálohy.');
@@ -869,8 +1048,29 @@
     reader.readAsText(file);
   }
 
-  // --- POSLUCHAČE UDÁLOSTÍ ---
+  // --- EVENT LISTENERS ---
   function setupEventListeners() {
+    // Auth & Zámek
+    lockPortalBtn.addEventListener('click', lockPortal);
+    togglePinVisibilityBtn.addEventListener('click', togglePinVisibility);
+
+    // Změna PINu
+    changePinModalBtn.addEventListener('click', () => {
+      changePinModal.classList.remove('hidden');
+      document.getElementById('input-old-pin').focus();
+    });
+    closePinModalBtn.addEventListener('click', () => {
+      changePinModal.classList.add('hidden');
+    });
+    cancelChangePinBtn.addEventListener('click', () => {
+      changePinModal.classList.add('hidden');
+    });
+
+    // Přepínač aplikací
+    navTabSachy.addEventListener('click', () => setActiveTab('sachy'));
+    navTabBss.addEventListener('click', () => setActiveTab('bss'));
+
+    // Kalendář navigace
     prevMonthBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       render();
@@ -888,11 +1088,9 @@
 
     bulkCheckBtn.addEventListener('click', bulkToggleWedThu);
 
-    // Přepínač Mřížka / Seznam
     formatGridBtn.addEventListener('click', () => setViewFormat('grid'));
     formatAgendaBtn.addEventListener('click', () => setViewFormat('agenda'));
 
-    // Filtr dnů v mřížce
     viewAllBtn.addEventListener('click', () => {
       viewFilter = 'all';
       viewAllBtn.className = 'px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white';
@@ -964,6 +1162,7 @@
       if (e.key === 'Escape') {
         if (!dayModal.classList.contains('hidden')) closeDayModal();
         if (!exportModal.classList.contains('hidden')) exportModal.classList.add('hidden');
+        if (!changePinModal.classList.contains('hidden')) changePinModal.classList.add('hidden');
       }
     });
 
@@ -973,6 +1172,10 @@
 
     exportModal.addEventListener('click', (e) => {
       if (e.target === exportModal) exportModal.classList.add('hidden');
+    });
+
+    changePinModal.addEventListener('click', (e) => {
+      if (e.target === changePinModal) changePinModal.classList.add('hidden');
     });
   }
 

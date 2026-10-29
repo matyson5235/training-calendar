@@ -1,0 +1,2193 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>BSS Cloud Hub â€¢ Multi-Instance Dashboard</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="brand_logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #080b12;
+    --bg-surface: rgba(15, 21, 37, 0.75);
+    --bg-card: rgba(19, 27, 46, 0.82);
+    --bg-card-hover: rgba(24, 34, 58, 0.95);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(56, 189, 248, 0.35);
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --accent-blue: #0284c7;
+    --accent-cyan: #38bdf8;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --accent-purple: #a855f7;
+    
+    --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 1px 1px rgba(255, 255, 255, 0.05);
+    --shadow-glow: 0 0 20px -5px rgba(56, 189, 248, 0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: var(--bg-base);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+
+  /* Header */
+  header {
+    background: rgba(11, 16, 28, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: max(14px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 14px max(20px, env(safe-area-inset-left));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+  }
+  .brand-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .brand-text h1 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(to right, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand-text p {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-emerald);
+    box-shadow: 0 0 10px var(--accent-emerald);
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+  .live-dot.pulse {
+    animation: livePulse 2s infinite;
+  }
+  .live-dot.offline {
+    background: var(--accent-rose);
+    box-shadow: 0 0 10px var(--accent-rose);
+  }
+  .live-dot.idle {
+    background: var(--accent-amber);
+    box-shadow: 0 0 10px var(--accent-amber);
+  }
+
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  /* Navigation Pills Bar */
+  .nav-bar {
+    max-width: 1400px;
+    margin: 20px auto 0;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .tab-pills {
+    display: flex;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    gap: 4px;
+  }
+  .tab-btn {
+    padding: 8px 20px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    background: transparent;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .tab-btn.active {
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.9), rgba(14, 165, 233, 0.8));
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+  }
+
+  .pc-sync-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Main Container */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(370px, 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+
+  /* Modern Card */
+  .card {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow-card);
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover {
+    border-color: rgba(56, 189, 248, 0.25);
+    box-shadow: var(--shadow-card), var(--shadow-glow);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.4), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before {
+    opacity: 1;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .instance-identity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .instance-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .instance-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .badge-chip {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .badge-chip.online {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  .badge-chip.offline {
+    background: rgba(244, 63, 94, 0.15);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+  }
+  .badge-chip.stopped {
+    background: rgba(100, 116, 139, 0.15);
+    color: #94a3b8;
+    border: 1px solid rgba(100, 116, 139, 0.3);
+  }
+
+  /* Status Banner */
+  .status-box {
+    background: rgba(11, 16, 28, 0.75);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .status-dot-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-msg {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  /* Action Buttons */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 580px) {
+    .actions-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  .act-btn {
+    padding: 9px 4px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition: all 0.15s ease;
+  }
+  .act-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  .act-btn:active {
+    transform: translateY(0);
+  }
+  .act-btn.start {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+  .act-btn.start:hover {
+    background: #10b981;
+    color: #ffffff;
+  }
+  .act-btn.stop {
+    background: rgba(244, 63, 94, 0.18);
+    color: #fb7185;
+    border-color: rgba(244, 63, 94, 0.35);
+  }
+  .act-btn.stop:hover {
+    background: #f43f5e;
+    color: #ffffff;
+  }
+  .act-btn.restart {
+    background: rgba(245, 158, 11, 0.18);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.35);
+  }
+  .act-btn.restart:hover {
+    background: #f59e0b;
+    color: #ffffff;
+  }
+  .act-btn.snap {
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.35);
+  }
+  .act-btn.snap:hover {
+    background: #0284c7;
+    color: #ffffff;
+  }
+  .act-btn.kill {
+    background: rgba(225, 29, 72, 0.18);
+    color: #fda4af;
+    border-color: rgba(225, 29, 72, 0.4);
+  }
+  .act-btn.kill:hover {
+    background: #e11d48;
+    color: #ffffff;
+    border-color: #f43f5e;
+    box-shadow: 0 0 12px rgba(225, 29, 72, 0.5);
+  }
+  .act-btn.remote {
+    background: rgba(139, 92, 246, 0.18);
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.35);
+  }
+  .act-btn.remote:hover {
+    background: #8b5cf6;
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+  }
+
+  .kill-pc-btn {
+    padding: 7px 14px;
+    border-radius: 9px;
+    border: 1px solid rgba(225, 29, 72, 0.45);
+    background: rgba(225, 29, 72, 0.18);
+    color: #fda4af;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+  .kill-pc-btn:hover {
+    background: #e11d48;
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(225, 29, 72, 0.45);
+    transform: translateY(-1px);
+  }
+
+  /* Terminal Log Box */
+  .section-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .terminal-box {
+    background: #06090f;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 12px;
+    max-height: 130px;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    margin-bottom: 16px;
+  }
+  .terminal-box::-webkit-scrollbar {
+    width: 5px;
+  }
+  .terminal-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+  .log-row {
+    font-size: 0.73rem;
+    line-height: 1.6;
+    color: #64748b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .log-row:first-child {
+    color: #38bdf8;
+    font-weight: 500;
+  }
+
+  /* Screenshots Carousel */
+  .screenshot-shelf {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .screenshot-shelf::-webkit-scrollbar {
+    height: 4px;
+  }
+  .screenshot-shelf::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+  .screenshot-thumb {
+    height: 84px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s;
+    flex-shrink: 0;
+    object-fit: cover;
+  }
+  .screenshot-thumb:hover {
+    transform: scale(1.04);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+  .empty-state-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 6px 0;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  /* Inactive Notice Banner */
+  .inactivity-warning {
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #fda4af;
+    font-size: 0.85rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  /* Lightbox */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 12, 0.92);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  #lightbox img {
+    max-width: 92vw;
+    max-height: 92vh;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--border-subtle);
+  }
+
+  /* Remote Control Modal */
+  .remote-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 14, 0.94);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.25s ease;
+  }
+  .remote-card {
+    background: rgba(15, 23, 42, 0.98);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 20px;
+    box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.85), 0 0 40px -10px rgba(139, 92, 246, 0.25);
+    width: 100%;
+    max-width: 1240px;
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .remote-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(11, 16, 28, 0.95);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .remote-title-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .remote-badge {
+    background: rgba(16, 185, 129, 0.18);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
+  .remote-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin: 0;
+  }
+  .remote-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .remote-refresh-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-subtle);
+    padding: 3px 8px;
+    border-radius: 9px;
+  }
+  .remote-refresh-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    cursor: pointer;
+    user-select: none;
+  }
+  .remote-refresh-label input[type="checkbox"] {
+    cursor: pointer;
+    accent-color: #0284c7;
+    width: 14px;
+    height: 14px;
+  }
+  .remote-interval-box {
+    display: flex;
+    align-items: center;
+    background: #06090f;
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 2px 6px;
+    gap: 2px;
+  }
+  .remote-interval-input {
+    width: 44px;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #38bdf8;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: right;
+  }
+  .remote-interval-input::-webkit-inner-spin-button,
+  .remote-interval-input::-webkit-outer-spin-button {
+    opacity: 0.4;
+  }
+  .remote-interval-unit {
+    color: #94a3b8;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .remote-interval-preset {
+    background: #06090f;
+    border: 1px solid var(--border-subtle);
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 0.73rem;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 3px 6px;
+    outline: none;
+    cursor: pointer;
+  }
+  .remote-interval-preset:focus {
+    border-color: #38bdf8;
+  }
+  .remote-hdr-btn {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .remote-hdr-btn:hover {
+    background: #0284c7;
+    color: #fff;
+  }
+  .remote-close-btn {
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    color: #fda4af;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .remote-close-btn:hover {
+    background: #f43f5e;
+    color: #fff;
+  }
+  .remote-body {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+  @media (max-width: 900px) {
+    .remote-body {
+      grid-template-columns: 1fr;
+      overflow-y: auto;
+    }
+  }
+  .remote-screen-wrapper {
+    background: #000000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+    min-height: 380px;
+  }
+  .remote-screen-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: auto;
+  }
+  .touch-ripple {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 12px #38bdf8;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+    opacity: 0;
+  }
+  .touch-ripple.active {
+    animation: rippleAnim 0.4s ease-out forwards;
+  }
+  @keyframes rippleAnim {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+  }
+  .screen-overlay-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    color: #94a3b8;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .remote-sidebar {
+    background: rgba(11, 16, 28, 0.9);
+    border-left: 1px solid var(--border-subtle);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  .ctrl-group {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .ctrl-group-title {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .dpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .dpad-btn {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    padding: 10px 4px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .dpad-btn:hover {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    transform: translateY(-1px);
+  }
+  .dpad-btn:active {
+    transform: translateY(1px);
+    background: #0284c7;
+    color: #fff;
+  }
+  .dpad-btn.space-btn {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.45);
+    color: #c4b5fd;
+  }
+  .dpad-btn.space-btn:hover {
+    background: #8b5cf6;
+    color: #fff;
+  }
+  .nav-keys-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .nav-btn {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1;
+    padding: 7px 4px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .nav-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .nav-btn:active {
+    transform: translateY(1px);
+  }
+  .slots-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .slot-btn {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #38bdf8;
+    padding: 8px 0;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .slot-btn:hover {
+    background: #0284c7;
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .preset-btn {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e2e8f0;
+    padding: 8px 6px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+  }
+  .preset-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
+  }
+  .text-input-row {
+    display: flex;
+    gap: 6px;
+  }
+  .remote-text-field {
+    flex: 1;
+    background: #06090f;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: #f8fafc;
+    font-size: 0.78rem;
+    outline: none;
+    font-family: inherit;
+  }
+  .remote-text-field:focus {
+    border-color: #38bdf8;
+  }
+  .text-send-btn {
+    background: #0284c7;
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .text-send-btn:hover {
+    background: #0369a1;
+  }
+  .remote-status-ticker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    padding: 4px 6px;
+  }
+  .ticker-dot {
+    color: #34d399;
+    font-size: 0.75rem;
+  }
+
+  /* Toast Notification */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0284c7;
+    color: #ffffff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(2, 132, 199, 0.4);
+    display: none;
+    z-index: 999;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .loading-box {
+    text-align: center;
+    padding: 70px 20px;
+    color: var(--text-muted);
+  }
+  .loading-box h2 {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+
+  /* Auth / Lock Overlay */
+  .auth-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 14, 0.94);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .auth-card {
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    border-radius: 22px;
+    padding: 38px 32px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 35px -10px rgba(56, 189, 248, 0.2);
+    text-align: center;
+  }
+  .auth-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  }
+  .auth-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #f8fafc;
+    margin-bottom: 8px;
+  }
+  .auth-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 24px;
+  }
+  .oauth-btn {
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f8fafc;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+  }
+  .oauth-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+  }
+  .oauth-btn.google-btn {
+    border-color: rgba(66, 133, 244, 0.4);
+    background: rgba(66, 133, 244, 0.1);
+  }
+  .oauth-btn.google-btn:hover {
+    background: rgba(66, 133, 244, 0.2);
+  }
+  .oauth-btn.github-btn {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(30, 41, 59, 0.8);
+  }
+  .oauth-btn.github-btn:hover {
+    background: rgba(51, 65, 85, 0.9);
+  }
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+  .auth-divider span {
+    padding: 0 12px;
+  }
+  .passcode-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .passcode-input {
+    flex: 1;
+    background: rgba(11, 16, 28, 0.8);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .passcode-input:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  }
+  .passcode-btn {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 18px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .passcode-btn:hover {
+    opacity: 0.9;
+  }
+  .auth-error {
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: #fda4af;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    margin-top: 14px;
+    text-align: left;
+    line-height: 1.4;
+  }
+  .auth-options {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+  .user-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 12px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    font-size: 0.78rem;
+  }
+  .user-email {
+    color: var(--text-secondary);
+    font-weight: 600;
+    max-width: 170px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .btn-logout {
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: #fda4af;
+    border-radius: 12px;
+    padding: 3px 9px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-logout:hover {
+    background: rgba(244, 63, 94, 0.3);
+  }
+</style>
+</head>
+<body>
+
+<!-- Private Access Lock Screen -->
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-icon">ðŸ”’</div>
+    <h2 class="auth-title">Private BSS Dashboard</h2>
+    <p class="auth-subtitle">Restricted to authorized accounts. Sign in with your Google or GitHub account, or unlock using your access passcode.</p>
+    
+    <button class="oauth-btn google-btn" type="button" onclick="handleGoogleSignIn()">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3h3.88c2.27-2.09 3.665-5.17 3.665-9.09z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.09C3.26 21.3 7.36 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.32c-.25-.72-.38-1.49-.38-2.32s.13-1.6.38-2.32V6.59H1.26C.46 8.18 0 9.99 0 12s.46 3.82 1.26 5.41l4.02-3.09z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.36 0 3.26 2.7 1.26 6.59l4.02 3.09c.95-2.83 3.6-4.93 6.72-4.93z"/></svg>
+      <span>Sign in with Google</span>
+    </button>
+
+    <button class="oauth-btn github-btn" type="button" onclick="handleGithubSignIn()">
+      <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      <span>Sign in with GitHub</span>
+    </button>
+
+    <div class="auth-divider">
+      <span>or enter passcode</span>
+    </div>
+
+    <form onsubmit="event.preventDefault(); unlockWithPasscode();">
+      <div class="passcode-group">
+        <input type="password" id="passcodeInput" class="passcode-input" placeholder="Master Passcode..." autocomplete="current-password">
+        <button type="submit" class="passcode-btn">Unlock</button>
+      </div>
+      <div class="auth-options">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+          <input type="checkbox" id="rememberMe" checked> Remember this device
+        </label>
+        <span style="opacity:0.7;">BSS Cloud Hub v3</span>
+      </div>
+    </form>
+
+    <div id="authError" class="auth-error" style="display: none;"></div>
+  </div>
+</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon"><img src="brand_logo.png" alt="BSS Hub" onerror="this.style.display='none'; this.parentElement.innerText='ðŸ'"></div>
+    <div class="brand-text">
+      <h1>BSS CLOUD HUB</h1>
+      <p>Autonomous Restarter & Telemetry</p>
+    </div>
+  </div>
+  <div class="header-meta">
+    <div class="user-pill" id="userPill" style="display: none;">
+      <span class="user-email" id="userEmail"></span>
+      <button class="btn-logout" type="button" onclick="handleLogout()">Sign Out</button>
+    </div>
+    <div class="status-pill">
+      <span class="live-dot pulse" id="liveDot"></span>
+      <span id="connStatus">Connecting...</span>
+    </div>
+  </div>
+</header>
+
+<div class="nav-bar">
+  <div class="tab-pills">
+    <button class="tab-btn active" id="tab-main" onclick="switchTab('main')">ðŸ’» Main PC</button>
+    <button class="tab-btn" id="tab-alt" onclick="switchTab('alt')">ðŸ–¥ï¸ Alt PC</button>
+    <button class="tab-btn" id="tab-gumtune" onclick="switchTab('gumtune')">ðŸŒ Gumtune (Atlas)</button>
+  </div>
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+    <button class="kill-pc-btn" id="killPcBtn" onclick="killCurrentPC()">ðŸ’€ Kill Main PC (Script + LDPlayer)</button>
+    <div class="pc-sync-hint" id="syncAgeHint">
+      <span>â±ï¸</span>
+      <span id="syncAgeText">Checking activity...</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div id="inactivityBanner" style="display: none;" class="inactivity-warning">
+    <span>âš ï¸</span>
+    <div>
+      <strong>Agent Inactive (&gt;30s):</strong> No heartbeat received from this PC in the last 30 seconds. Current states have been cleared to prevent stale telemetry.
+    </div>
+  </div>
+
+  <div class="grid" id="grid">
+    <div class="loading-box">
+      <h2>Connecting to Firebase Realtime Stream...</h2>
+      <p>Waiting for agent telemetry.</p>
+    </div>
+  </div>
+
+  <!-- Integrated Gumtune Atlas Dashboard View -->
+  <div id="gumtuneContainer" style="display: none; width: 100%; margin-top: 6px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); padding: 14px 20px; border-radius: 16px 16px 0 0; border: 1px solid var(--border-subtle); border-bottom: none; flex-wrap: wrap; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 1.3rem;">ðŸŒ</span>
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <strong style="font-size: 1.05rem; color: #fff;">Gumtune â€¢ Atlas Dashboard</strong>
+            <span style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3);">LIVE WEB EMBED</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Manage and monitor Roblox accounts, macro status & hive tuning (gumtune.net)</p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button class="act-btn" onclick="reloadGumtuneIframe()" style="background: rgba(255,255,255,0.06); color: var(--text-secondary); padding: 8px 16px; border-radius: 9px; border: 1px solid var(--border-subtle); cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s;">ðŸ”„ Reload</button>
+        <button class="act-btn" onclick="window.open('https://gumtune.net', '_blank')" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #fff; padding: 8px 16px; border-radius: 9px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 700; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); transition: all 0.2s;">â†— Open in New Tab</button>
+      </div>
+    </div>
+    <div style="width: 100%; height: calc(100vh - 200px); min-height: 700px; background: #080b12; border: 1px solid var(--border-subtle); border-radius: 0 0 16px 16px; overflow: hidden; box-shadow: var(--shadow-card);">
+      <iframe id="gumtuneIframe" src="" style="width: 100%; height: 100%; border: none;" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Remote Control Modal (ADB Touch Streamer) -->
+<div id="remoteModal" class="remote-modal" style="display: none;">
+  <div class="remote-card">
+    <div class="remote-header">
+      <div class="remote-title-box">
+        <span class="remote-badge">LIVE STREAM</span>
+        <h3 class="remote-title" id="remoteTitle">Remote Control: Main PC â€¢ ld0</h3>
+      </div>
+      <div class="remote-header-actions">
+        <!-- Auto Refresh Controls with Custom Time -->
+        <div class="remote-refresh-ctrl">
+          <label class="remote-refresh-label" title="Enable / Disable Auto Refresh">
+            <input type="checkbox" id="remoteAutoRefreshCheck" checked onchange="toggleRemoteAutoRefresh(this.checked)">
+            <span>Auto</span>
+          </label>
+          <div class="remote-interval-box" title="Custom Refresh Interval (in seconds)">
+            <input type="number" id="remoteIntervalInput" class="remote-interval-input" value="1.5" min="0.2" max="60" step="0.1" onchange="updateRemoteRefreshInterval(this.value)" oninput="updateRemoteRefreshInterval(this.value)">
+            <span class="remote-interval-unit">s</span>
+          </div>
+          <select id="remoteIntervalPreset" class="remote-interval-preset" onchange="setRemoteIntervalPreset(this.value)" title="Quick interval presets">
+            <option value="0.5">0.5s</option>
+            <option value="1.0">1.0s</option>
+            <option value="1.5" selected>1.5s</option>
+            <option value="2.0">2.0s</option>
+            <option value="3.0">3.0s</option>
+            <option value="5.0">5.0s</option>
+            <option value="custom" disabled>Custom</option>
+          </select>
+        </div>
+
+        <button class="remote-hdr-btn" onclick="requestRemoteRefresh()" title="Capture instant snapshot">ðŸ”„ Snap</button>
+        <button class="remote-close-btn" onclick="closeRemoteModal()" title="Close Remote Control">âœ•</button>
+      </div>
+    </div>
+
+    <div class="remote-body">
+      <!-- Screen Viewport with Crosshair & Touch Overlay -->
+      <div class="remote-screen-wrapper" id="screenWrapper" onpointerdown="handleScreenPointerDown(event)" onpointerup="handleScreenPointerUp(event)">
+        <img id="remoteScreenImg" src="" alt="Remote Screen" draggable="false" />
+        <div id="touchRipple" class="touch-ripple"></div>
+        <div class="screen-overlay-hint">
+          ðŸ–±ï¸ Click to Tap â€¢ Drag to Swipe â€¢ Keyboard Active
+        </div>
+      </div>
+
+      <!-- Control Sidebar -->
+      <div class="remote-sidebar">
+        <!-- Movement D-Pad -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-title">MOVEMENT (WASD)</div>
+          <div class="dpad-grid">
+            <div></div>
+            <button class="dpad-btn" onclick="sendRemoteKey('w')">â–² W</button>
+            <div></div>
+            <button class="dpad-btn" onclick="sendRemoteKey('a')">â—€ A</button>
+            <button class="dpad-btn space-btn" onclick="sendRemoteKey('space')">JUMP</button>
+            <button class="dpad-btn" onclick="sendRemoteKey('d')">â–¶ D</button>
+            <div></div>
+            <button class="dpad-btn" onclick="sendRemoteKey('s')">â–¼ S</button>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Navigation Keys -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-title">NAVIGATION KEYS</div>
+          <div class="nav-keys-grid">
+            <button class="nav-btn" onclick="sendRemoteKey('escape')">ESC</button>
+            <button class="nav-btn" onclick="sendRemoteKey('e')">E (Interact)</button>
+            <button class="nav-btn" onclick="sendRemoteKey('slash')">/ (Chat)</button>
+            <button class="nav-btn" onclick="sendRemoteKey('enter')">Enter</button>
+            <button class="nav-btn" onclick="sendRemoteKey('tab')">Tab</button>
+            <button class="nav-btn" onclick="sendRemoteKey('back')">Android Back</button>
+          </div>
+        </div>
+
+        <!-- Quick Hotbar (1-7) -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-title">ITEM SLOTS (1 - 7)</div>
+          <div class="slots-grid">
+            <button class="slot-btn" onclick="sendRemoteKey('1')">1</button>
+            <button class="slot-btn" onclick="sendRemoteKey('2')">2</button>
+            <button class="slot-btn" onclick="sendRemoteKey('3')">3</button>
+            <button class="slot-btn" onclick="sendRemoteKey('4')">4</button>
+            <button class="slot-btn" onclick="sendRemoteKey('5')">5</button>
+            <button class="slot-btn" onclick="sendRemoteKey('6')">6</button>
+            <button class="slot-btn" onclick="sendRemoteKey('7')">7</button>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-title">QUICK PRESETS</div>
+          <div class="preset-grid">
+            <button class="preset-btn" onclick="sendRemotePreset('claim_hive')">Claim Hive (E)</button>
+            <button class="preset-btn" onclick="sendRemotePreset('open_bag')">Open Bag</button>
+            <button class="preset-btn" onclick="sendRemotePreset('jump')">Jump</button>
+            <button class="preset-btn" onclick="sendRemotePreset('recenter')">Recenter Tap</button>
+          </div>
+        </div>
+
+        <!-- Text Input -->
+        <div class="ctrl-group">
+          <div class="ctrl-group-title">TYPE TEXT TO EMULATOR</div>
+          <div class="text-input-row">
+            <input type="text" id="remoteTextInput" class="remote-text-field" placeholder="Type message..." onkeydown="if(event.key==='Enter') sendRemoteText()" />
+            <button class="text-send-btn" onclick="sendRemoteText()">Send</button>
+          </div>
+        </div>
+
+        <!-- Status Ticker -->
+        <div class="remote-status-ticker">
+          <span class="ticker-dot">â—</span>
+          <span id="remoteTickerStatus">Ready</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="this.style.display='none'">
+  <img id="lightboxImg" src="" alt="Screenshot">
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import { 
+    getAuth, 
+    signInWithPopup, 
+    GoogleAuthProvider, 
+    GithubAuthProvider, 
+    onAuthStateChanged, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+  // ============================================================
+  // Access Control & Authentication Configuration
+  // ============================================================
+  const AUTH_CONFIG = {
+    // List of allowed Google / GitHub accounts (case-insensitive)
+    allowedEmails: [
+      "matyson5235@gmail.com"
+    ],
+    // Master passcode for direct access, iOS app, or bypass
+    masterPasscode: "bss5412"
+  };
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCyRKw-ZPzbT5A28XlqyF6-CGqSI-JJsGU",
+    authDomain: "bss-auto-restart.firebaseapp.com",
+    databaseURL: "https://bss-auto-restart-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bss-auto-restart",
+    storageBucket: "bss-auto-restart.firebasestorage.app",
+    messagingSenderId: "292978754881",
+    appId: "1:292978754881:web:f8bf28ef7184e89b144dc0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  let isAuthenticated = false;
+  let currentPC = 'main';
+  let activeUnsubscribe = null;
+  let lastDataReceivedTs = null;
+  let latestRawData = null;
+  let isCurrentStateCleared = false;
+
+  function showAuthError(msg) {
+    const el = document.getElementById('authError');
+    if (el) {
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+  }
+
+  function clearAuthError() {
+    const el = document.getElementById('authError');
+    if (el) {
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+  }
+
+  function grantAccess(identity, method, save = true) {
+    isAuthenticated = true;
+    if (save) {
+      const remember = document.getElementById('rememberMe')?.checked ?? true;
+      const data = JSON.stringify({ identity, method, ts: Date.now() });
+      if (remember) {
+        localStorage.setItem('bss_dashboard_session', data);
+      } else {
+        sessionStorage.setItem('bss_dashboard_session', data);
+      }
+    }
+    const overlay = document.getElementById('authOverlay');
+    if (overlay) overlay.style.display = 'none';
+    const pill = document.getElementById('userPill');
+    if (pill) pill.style.display = 'flex';
+    const emailEl = document.getElementById('userEmail');
+    if (emailEl) emailEl.textContent = identity;
+
+    // Connect to active tab
+    switchTab(currentPC || 'main');
+  }
+
+  function checkStoredSession() {
+    try {
+      const stored = localStorage.getItem('bss_dashboard_session') || sessionStorage.getItem('bss_dashboard_session');
+      if (stored) {
+        const session = JSON.parse(stored);
+        if (session && session.identity) {
+          grantAccess(session.identity, session.method, false);
+          return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  window.handleGoogleSignIn = async function() {
+    clearAuthError();
+    try {
+      const provider = new GoogleAuthProvider();
+      const res = await signInWithPopup(auth, provider);
+      const email = (res.user.email || '').toLowerCase();
+      if (AUTH_CONFIG.allowedEmails.length > 0 && !AUTH_CONFIG.allowedEmails.map(e => e.toLowerCase()).includes(email)) {
+        await signOut(auth);
+        showAuthError(`Access denied: Google account (${res.user.email}) is not authorized.`);
+        return;
+      }
+      grantAccess(res.user.email, 'google');
+    } catch (err) {
+      if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
+        showAuthError('Google Sign-In is not enabled in Firebase Console yet. Please enable it in Authentication -> Sign-in method, or unlock using your Master Passcode below.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // user dismissed popup
+      } else {
+        showAuthError('Sign-in failed: ' + (err.message || err.code));
+      }
+    }
+  };
+
+  window.handleGithubSignIn = async function() {
+    clearAuthError();
+    try {
+      const provider = new GithubAuthProvider();
+      const res = await signInWithPopup(auth, provider);
+      const email = (res.user.email || res.user.reloadUserInfo?.screenName || '').toLowerCase();
+      if (AUTH_CONFIG.allowedEmails.length > 0 && res.user.email && !AUTH_CONFIG.allowedEmails.map(e => e.toLowerCase()).includes(email)) {
+        await signOut(auth);
+        showAuthError(`Access denied: GitHub account (${res.user.email}) is not authorized.`);
+        return;
+      }
+      grantAccess(res.user.email || 'GitHub User', 'github');
+    } catch (err) {
+      if (err.code === 'auth/configuration-not-found' || err.code === 'auth/operation-not-allowed') {
+        showAuthError('GitHub Sign-In is not enabled in Firebase Console yet. Please enable it in Authentication -> Sign-in method, or unlock using your Master Passcode below.');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        // user dismissed popup
+      } else {
+        showAuthError('Sign-in failed: ' + (err.message || err.code));
+      }
+    }
+  };
+
+  window.unlockWithPasscode = function() {
+    clearAuthError();
+    const input = document.getElementById('passcodeInput');
+    const val = (input.value || '').trim();
+    if (!val) {
+      showAuthError('Please enter the access passcode.');
+      return;
+    }
+    if (val === AUTH_CONFIG.masterPasscode) {
+      grantAccess('Master Passcode', 'passcode');
+    } else {
+      showAuthError('Incorrect passcode. Please try again.');
+      input.select();
+    }
+  };
+
+  window.handleLogout = async function() {
+    localStorage.removeItem('bss_dashboard_session');
+    sessionStorage.removeItem('bss_dashboard_session');
+    isAuthenticated = false;
+    try {
+      await signOut(auth);
+    } catch (e) {}
+
+    if (activeUnsubscribe) {
+      activeUnsubscribe();
+      activeUnsubscribe = null;
+    }
+
+    const grid = document.getElementById('grid');
+    if (grid) {
+      grid.innerHTML = '<div class="loading-box"><h2>Dashboard Locked</h2><p>Please authenticate to access live telemetry.</p></div>';
+    }
+    document.getElementById('userPill').style.display = 'none';
+    document.getElementById('passcodeInput').value = '';
+    document.getElementById('authOverlay').style.display = 'flex';
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 2600);
+  }
+
+  window.reloadGumtuneIframe = function() {
+    const iframe = document.getElementById('gumtuneIframe');
+    if (iframe) {
+      iframe.src = 'https://gumtune.net';
+      showToast('ðŸ”„ Reloading Gumtune...');
+    }
+  };
+
+  window.switchTab = function(pc) {
+    if (!isAuthenticated) return;
+    if (currentPC === pc && (activeUnsubscribe || pc === 'gumtune')) return;
+    
+    // 1. Immediately unsubscribe previous listener to fix lag & prevent tab swapping!
+    if (activeUnsubscribe) {
+      activeUnsubscribe();
+      activeUnsubscribe = null;
+    }
+
+    currentPC = pc;
+    lastDataReceivedTs = null;
+    latestRawData = null;
+    isCurrentStateCleared = false;
+    document.getElementById('inactivityBanner').style.display = 'none';
+
+    document.getElementById('tab-main')?.classList.toggle('active', pc === 'main');
+    document.getElementById('tab-alt')?.classList.toggle('active', pc === 'alt');
+    document.getElementById('tab-gumtune')?.classList.toggle('active', pc === 'gumtune');
+
+    const killBtn = document.getElementById('killPcBtn');
+    const syncAgeHint = document.getElementById('syncAgeHint');
+    const grid = document.getElementById('grid');
+    const gumtuneContainer = document.getElementById('gumtuneContainer');
+
+    if (pc === 'gumtune') {
+      if (killBtn) killBtn.style.display = 'none';
+      if (syncAgeHint) syncAgeHint.style.display = 'none';
+      if (grid) grid.style.display = 'none';
+      if (gumtuneContainer) {
+        gumtuneContainer.style.display = 'block';
+        const iframe = document.getElementById('gumtuneIframe');
+        if (iframe && (!iframe.src || iframe.src === 'about:blank' || !iframe.src.includes('gumtune.net'))) {
+          iframe.src = 'https://gumtune.net';
+        }
+      }
+      updateConnectionStatus(true, 'Atlas (gumtune.net)');
+      return;
+    } else {
+      if (gumtuneContainer) gumtuneContainer.style.display = 'none';
+      if (grid) grid.style.display = 'grid';
+      if (killBtn) {
+        killBtn.style.display = 'flex';
+        killBtn.textContent = `ðŸ’€ Kill ${pc === 'main' ? 'Main' : 'Alt'} PC (Script + LDPlayer)`;
+      }
+      if (syncAgeHint) syncAgeHint.style.display = 'flex';
+    }
+
+    subscribeToPC(pc);
+  };
+
+  function subscribeToPC(pc) {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '<div class="loading-box"><h2>Loading ' + (pc === 'main' ? 'Main PC' : 'Alt PC') + '...</h2></div>';
+    
+    const pcRef = ref(db, `/bss/${pc}`);
+    
+    // Store unsubscribe returned by onValue
+    activeUnsubscribe = onValue(pcRef, (snapshot) => {
+      // Guard: strictly ignore callbacks if user switched to another tab
+      if (currentPC !== pc) return;
+
+      const data = snapshot.val();
+      lastDataReceivedTs = Date.now();
+      latestRawData = data;
+      isCurrentStateCleared = false;
+
+      updateConnectionStatus(true, 'Live');
+
+      if (!data) {
+        grid.innerHTML = `
+          <div class="loading-box">
+            <h2>No instances found for ${pc === 'main' ? 'Main PC' : 'Alt PC'}</h2>
+            <p>Ensure bss_multi.py or ld_${pc}.py is active.</p>
+          </div>`;
+        return;
+      }
+
+      // Filter out commands and metadata keys starting with _
+      const instances = Object.entries(data).filter(([k]) => k !== 'commands' && !k.startsWith('_'));
+      if (instances.length === 0) {
+        grid.innerHTML = `
+          <div class="loading-box">
+            <h2>Waiting for instances...</h2>
+            <p>No active bots registered yet.</p>
+          </div>`;
+        return;
+      }
+
+      renderInstances(instances, pc);
+      updateRemoteScreenFrame();
+    }, (error) => {
+      if (currentPC !== pc) return;
+      updateConnectionStatus(false, 'Error: ' + error.message);
+    });
+  }
+
+  function updateConnectionStatus(isLive, label) {
+    const dot = document.getElementById('liveDot');
+    const txt = document.getElementById('connStatus');
+    txt.textContent = label;
+    if (isLive) {
+      dot.className = 'live-dot pulse';
+    } else {
+      dot.className = 'live-dot offline';
+    }
+  }
+
+  function renderInstances(instances, pc) {
+    const grid = document.getElementById('grid');
+    let html = '';
+
+    for (const [name, s] of instances) {
+      const isOnline = Boolean(s.is_running && !s.user_stopped);
+      const isStopped = Boolean(s.user_stopped);
+      
+      let badgeClass = 'offline';
+      let badgeLabel = 'â— Offline';
+      if (isStopped) {
+        badgeClass = 'stopped';
+        badgeLabel = 'â–  Stopped';
+      } else if (isOnline) {
+        badgeClass = 'online';
+        badgeLabel = 'â— Online';
+      }
+
+      const statusColor = isOnline ? 'var(--accent-emerald)' : isStopped ? 'var(--text-muted)' : 'var(--accent-amber)';
+
+      const screenshots = (s.screenshots || []).map(sc => {
+        const src = `data:image/png;base64,${sc.data}`;
+        return `<img class="screenshot-thumb" src="${src}" title="${sc.name || 'Capture'}" onclick="openLightbox('${src}')" alt="Snap">`;
+      }).join('');
+
+      const logs = (s.logs || []).slice(0, 16).map(l =>
+        `<div class="log-row">${escapeHtml(l)}</div>`
+      ).join('');
+
+      const updatedStr = s.last_updated ? formatRelativeTime(s.last_updated) : 'â€”';
+
+      html += `
+        <div class="card" id="card-${name}">
+          <div class="card-top">
+            <div class="instance-identity">
+              <div class="instance-avatar">ðŸŽ®</div>
+              <div class="instance-name">${name}</div>
+            </div>
+            <div class="badge-chip ${badgeClass}">${badgeLabel}</div>
+          </div>
+
+          <div class="status-box">
+            <div class="status-dot-indicator" style="background:${statusColor};"></div>
+            <div class="status-msg">${escapeHtml(s.status || 'Waiting for status...')}</div>
+          </div>
+
+          <div class="actions-grid">
+            <button class="act-btn start" onclick="sendCommand('${pc}','${name}','start')">â–¶ Start</button>
+            <button class="act-btn stop" onclick="sendCommand('${pc}','${name}','stop')">â–  Stop</button>
+            <button class="act-btn restart" onclick="sendCommand('${pc}','${name}','restart')">â†º Restart</button>
+            <button class="act-btn snap" onclick="sendCommand('${pc}','${name}','screenshot')">ðŸ“¸ Snap</button>
+            <button class="act-btn kill" onclick="sendCommand('${pc}','${name}','kill')" title="Kill LDPlayer & Script">ðŸ’€ Kill</button>
+            <button class="act-btn remote" onclick="openRemoteModal('${pc}','${name}')">ðŸŽ® Remote</button>
+          </div>
+
+          <div class="section-title">
+            <span>Terminal Logs</span>
+            <span>Live Feed</span>
+          </div>
+          <div class="terminal-box">
+            ${logs || '<div class="empty-state-text">No logs captured yet</div>'}
+          </div>
+
+          <div class="section-title">
+            <span>Recent Screenshots</span>
+            <span>${(s.screenshots || []).length} Frames</span>
+          </div>
+          <div class="screenshot-shelf">
+            ${screenshots || '<div class="empty-state-text">No screenshots captured</div>'}
+          </div>
+
+          <div class="card-footer">
+            <span>Telemetry: Verified</span>
+            <span>Updated: ${updatedStr}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    grid.innerHTML = html;
+  }
+
+  // Command Sender with visual feedback & custom parameters
+  window.sendCommand = function(pc, instance, action, extra = {}) {
+    if (action === 'kill') {
+      const pcLabel = pc === 'main' ? 'MAIN PC' : 'ALT PC';
+      if (!confirm(`âš ï¸ ARE YOU SURE YOU WANT TO KILL ${pcLabel}?\n\nThis will completely terminate LDPlayer AND exit the Python auto-restart script.`)) {
+        return;
+      }
+    }
+    const cmdRef = ref(db, `/bss/${pc}/commands`);
+    const payload = { instance: instance || 'all', action, ts: Date.now(), ...extra };
+    set(cmdRef, payload)
+      .then(() => {
+        if (!['tap', 'swipe', 'key', 'text', 'stream_request'].includes(action)) {
+          showToast(action === 'kill'
+            ? `ðŸ’€ Kill command sent! Terminating LDPlayer & script on ${pc.toUpperCase()}...`
+            : `âœ“ Command '${action}' dispatched to ${instance}!`);
+        }
+      })
+      .catch((err) => {
+        showToast(`âœ— Failed to send command: ${err.message}`);
+      });
+  };
+
+  // -------------------------------------------------------------
+  // Interactive Remote Control (ADB Touch / Gesture / Key Stream)
+  // -------------------------------------------------------------
+  let activeRemotePC = null;
+  let activeRemoteInstance = null;
+  let remoteRefreshInterval = null;
+  let remoteAutoRefreshEnabled = true;
+  let remoteRefreshIntervalMs = 1500;
+  let touchStartPos = null;
+  let touchStartTime = 0;
+
+  window.toggleRemoteAutoRefresh = function(enabled) {
+    remoteAutoRefreshEnabled = Boolean(enabled);
+    if (!remoteAutoRefreshEnabled) {
+      if (remoteRefreshInterval) {
+        clearInterval(remoteRefreshInterval);
+        remoteRefreshInterval = null;
+      }
+      setTickerStatus('Auto-refresh paused', '#94a3b8');
+    } else {
+      restartRemoteRefreshTimer();
+      setTickerStatus(`Auto-refresh active (${(remoteRefreshIntervalMs / 1000).toFixed(1)}s)`, '#34d399');
+    }
+  };
+
+  window.updateRemoteRefreshInterval = function(valSec) {
+    let sec = parseFloat(valSec);
+    if (isNaN(sec) || sec < 0.2) sec = 0.2;
+    if (sec > 60) sec = 60;
+    remoteRefreshIntervalMs = Math.round(sec * 1000);
+
+    const presetEl = document.getElementById('remoteIntervalPreset');
+    if (presetEl) {
+      const match = Array.from(presetEl.options).find(opt => parseFloat(opt.value) === sec);
+      presetEl.value = match ? match.value : 'custom';
+    }
+
+    if (remoteAutoRefreshEnabled && activeRemotePC) {
+      restartRemoteRefreshTimer();
+      setTickerStatus(`Auto-refresh: ${sec.toFixed(1)}s`, '#38bdf8');
+    }
+  };
+
+  window.setRemoteIntervalPreset = function(val) {
+    if (val === 'custom') return;
+    const input = document.getElementById('remoteIntervalInput');
+    if (input) input.value = val;
+    updateRemoteRefreshInterval(val);
+  };
+
+  function restartRemoteRefreshTimer() {
+    if (remoteRefreshInterval) {
+      clearInterval(remoteRefreshInterval);
+      remoteRefreshInterval = null;
+    }
+    if (!remoteAutoRefreshEnabled || !activeRemotePC) return;
+
+    remoteRefreshInterval = setInterval(() => {
+      if (document.getElementById('remoteModal')?.style.display !== 'none' && activeRemotePC && activeRemoteInstance) {
+        updateRemoteScreenFrame();
+        // Request fresh screenshot from host agent
+        sendCommand(activeRemotePC, activeRemoteInstance, 'stream_request');
+      }
+    }, remoteRefreshIntervalMs);
+  }
+
+  window.openRemoteModal = function(pc, instance) {
+    activeRemotePC = pc;
+    activeRemoteInstance = instance;
+
+    const titleEl = document.getElementById('remoteTitle');
+    if (titleEl) {
+      titleEl.textContent = `Remote Control: ${pc === 'main' ? 'Main PC' : 'Alt PC'} â€¢ ${instance}`;
+    }
+
+    const modal = document.getElementById('remoteModal');
+    if (modal) modal.style.display = 'flex';
+
+    updateRemoteScreenFrame();
+    requestRemoteRefresh();
+
+    restartRemoteRefreshTimer();
+
+    window.addEventListener('keydown', handleRemoteKeydown);
+  };
+
+  window.closeRemoteModal = function() {
+    const modal = document.getElementById('remoteModal');
+    if (modal) modal.style.display = 'none';
+    if (remoteRefreshInterval) {
+      clearInterval(remoteRefreshInterval);
+      remoteRefreshInterval = null;
+    }
+    window.removeEventListener('keydown', handleRemoteKeydown);
+    activeRemotePC = null;
+    activeRemoteInstance = null;
+  };
+
+  window.requestRemoteRefresh = function() {
+    if (!activeRemotePC || !activeRemoteInstance) return;
+    sendCommand(activeRemotePC, activeRemoteInstance, 'screenshot');
+    setTickerStatus('Refreshing frame...', '#38bdf8');
+  };
+
+  function updateRemoteScreenFrame() {
+    if (!latestRawData || !activeRemoteInstance) return;
+    const instData = latestRawData[activeRemoteInstance];
+    if (instData && instData.screenshots && instData.screenshots.length > 0) {
+      const img = document.getElementById('remoteScreenImg');
+      const latestSrc = `data:image/png;base64,${instData.screenshots[0].data}`;
+      if (img && img.src !== latestSrc) {
+        img.src = latestSrc;
+      }
+    }
+  }
+
+  function setTickerStatus(text, color = '#34d399') {
+    const ticker = document.getElementById('remoteTickerStatus');
+    if (ticker) {
+      ticker.textContent = text;
+      ticker.style.color = color;
+    }
+  }
+
+  function getScaledCoords(clientX, clientY) {
+    const img = document.getElementById('remoteScreenImg');
+    if (!img) return null;
+    const rect = img.getBoundingClientRect();
+    if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+      return null;
+    }
+    const nativeW = img.naturalWidth || 960;
+    const nativeH = img.naturalHeight || 540;
+    const scaleX = nativeW / (rect.width || 1);
+    const scaleY = nativeH / (rect.height || 1);
+    return {
+      x: Math.round((clientX - rect.left) * scaleX),
+      y: Math.round((clientY - rect.top) * scaleY),
+      localX: clientX - rect.left,
+      localY: clientY - rect.top
+    };
+  }
+
+  function showTouchRipple(clientX, clientY) {
+    const wrapper = document.getElementById('screenWrapper');
+    const ripple = document.getElementById('touchRipple');
+    if (!wrapper || !ripple) return;
+    const rect = wrapper.getBoundingClientRect();
+    ripple.style.left = (clientX - rect.left) + 'px';
+    ripple.style.top = (clientY - rect.top) + 'px';
+    ripple.classList.remove('active');
+    void ripple.offsetWidth;
+    ripple.classList.add('active');
+  }
+
+  window.handleScreenPointerDown = function(e) {
+    const coords = getScaledCoords(e.clientX, e.clientY);
+    if (!coords) return;
+    touchStartPos = { clientX: e.clientX, clientY: e.clientY, ...coords };
+    touchStartTime = Date.now();
+    e.preventDefault();
+  };
+
+  window.handleScreenPointerUp = function(e) {
+    if (!touchStartPos || !activeRemotePC || !activeRemoteInstance) return;
+    const endCoords = getScaledCoords(e.clientX, e.clientY);
+    const duration = Date.now() - touchStartTime;
+
+    const dx = endCoords ? (endCoords.x - touchStartPos.x) : 0;
+    const dy = endCoords ? (endCoords.y - touchStartPos.y) : 0;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist < 15 && duration < 500) {
+      showTouchRipple(touchStartPos.clientX, touchStartPos.clientY);
+      sendCommand(activeRemotePC, activeRemoteInstance, 'tap', { x: touchStartPos.x, y: touchStartPos.y });
+      setTickerStatus(`Tap (${touchStartPos.x}, ${touchStartPos.y})`);
+    } else if (endCoords) {
+      const swipeDuration = Math.max(150, Math.min(800, duration));
+      sendCommand(activeRemotePC, activeRemoteInstance, 'swipe', {
+        x1: touchStartPos.x,
+        y1: touchStartPos.y,
+        x2: endCoords.x,
+        y2: endCoords.y,
+        duration: swipeDuration
+      });
+      setTickerStatus(`Swipe (${touchStartPos.x},${touchStartPos.y}) â†’ (${endCoords.x},${endCoords.y})`);
+    }
+
+    touchStartPos = null;
+  };
+
+  window.sendRemoteKey = function(key) {
+    if (!activeRemotePC || !activeRemoteInstance) return;
+    sendCommand(activeRemotePC, activeRemoteInstance, 'key', { key });
+    setTickerStatus(`Key: ${key.toUpperCase()}`);
+  };
+
+  window.sendRemoteText = function() {
+    const input = document.getElementById('remoteTextInput');
+    const text = (input.value || '').trim();
+    if (!text || !activeRemotePC || !activeRemoteInstance) return;
+    sendCommand(activeRemotePC, activeRemoteInstance, 'text', { text });
+    setTickerStatus(`Sent: "${text}"`);
+    input.value = '';
+  };
+
+  window.sendRemotePreset = function(preset) {
+    if (!activeRemotePC || !activeRemoteInstance) return;
+    if (preset === 'claim_hive') {
+      sendRemoteKey('e');
+    } else if (preset === 'open_bag') {
+      sendCommand(activeRemotePC, activeRemoteInstance, 'tap', { x: 50, y: 50 });
+      setTickerStatus('Open Bag (Tap 50, 50)');
+    } else if (preset === 'jump') {
+      sendRemoteKey('space');
+    } else if (preset === 'recenter') {
+      sendCommand(activeRemotePC, activeRemoteInstance, 'tap', { x: 480, y: 270 });
+      setTickerStatus('Recenter (Tap 480, 270)');
+    }
+  };
+
+  function handleRemoteKeydown(e) {
+    if (document.getElementById('remoteModal')?.style.display === 'none') return;
+    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+    const key = e.key.toLowerCase();
+    const map = {
+      'w': 'w', 'a': 'a', 's': 's', 'd': 'd',
+      ' ': 'space', 'escape': 'escape', 'enter': 'enter',
+      'e': 'e', '/': 'slash', '1': '1', '2': '2', '3': '3',
+      '4': '4', '5': '5', '6': '6', '7': '7'
+    };
+
+    if (map[key]) {
+      e.preventDefault();
+      sendRemoteKey(map[key]);
+    }
+  }
+
+  window.killCurrentPC = function() {
+    sendCommand(currentPC, 'all', 'kill');
+  };
+
+  window.openLightbox = function(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').style.display = 'flex';
+  };
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function formatRelativeTime(dateStr) {
+    try {
+      const d = new Date(dateStr.endsWith('Z') ? dateStr : dateStr + 'Z');
+      const diffS = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (diffS < 5) return 'Just now';
+      if (diffS < 60) return `${diffS}s ago`;
+      const m = Math.floor(diffS / 60);
+      return `${m}m ${diffS % 60}s ago`;
+    } catch {
+      return dateStr;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 30s INACTIVITY WATCHDOG: Clears states if no activity > 30s!
+  // -------------------------------------------------------------
+  setInterval(() => {
+    let pcHeartbeatTime = null;
+    if (latestRawData) {
+      if (latestRawData._heartbeat) {
+        const hb = latestRawData._heartbeat;
+        pcHeartbeatTime = new Date(hb.endsWith('Z') || hb.includes('+') ? hb : hb + 'Z').getTime();
+      } else {
+        // Find newest last_updated among entries
+        for (const [k, v] of Object.entries(latestRawData)) {
+          if (k !== 'commands' && v && v.last_updated) {
+            const lu = v.last_updated;
+            const t = new Date(lu.endsWith('Z') || lu.includes('+') ? lu : lu + 'Z').getTime();
+            if (!pcHeartbeatTime || t > pcHeartbeatTime) pcHeartbeatTime = t;
+          }
+        }
+      }
+    }
+
+    let secondsSinceLastPing = null;
+    if (pcHeartbeatTime) {
+      secondsSinceLastPing = Math.max(0, Math.floor((Date.now() - pcHeartbeatTime) / 1000));
+    } else if (lastDataReceivedTs) {
+      secondsSinceLastPing = Math.max(0, Math.floor((Date.now() - lastDataReceivedTs) / 1000));
+    } else {
+      return;
+    }
+
+    const hintEl = document.getElementById('syncAgeText');
+    const banner = document.getElementById('inactivityBanner');
+    const liveDot = document.getElementById('liveDot');
+
+    if (secondsSinceLastPing <= 30) {
+      hintEl.textContent = `Active (${secondsSinceLastPing}s ago)`;
+      banner.style.display = 'none';
+      if (!liveDot.classList.contains('pulse')) {
+        liveDot.className = 'live-dot pulse';
+        document.getElementById('connStatus').textContent = 'Live';
+      }
+    } else {
+      hintEl.textContent = `No signal (${secondsSinceLastPing}s ago)`;
+      banner.style.display = 'flex';
+      liveDot.className = 'live-dot offline';
+      document.getElementById('connStatus').textContent = 'Offline (>30s)';
+
+      // Clear the current active states if not already cleared
+      if (!isCurrentStateCleared) {
+        isCurrentStateCleared = true;
+        clearCurrentStatesDueToInactivity();
+      }
+    }
+  }, 1000);
+
+  function clearCurrentStatesDueToInactivity() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = `
+      <div class="loading-box">
+        <h2 style="color:var(--accent-rose);">âš ï¸ ${currentPC === 'main' ? 'Main PC' : 'Alt PC'} Disconnected</h2>
+        <p>No activity detected in the last 30s. Active states have been cleared.</p>
+      </div>`;
+  }
+
+  // Check stored session or listen for auth state
+  if (!checkStoredSession()) {
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.email) {
+        const email = user.email.toLowerCase();
+        if (AUTH_CONFIG.allowedEmails.length > 0 && !AUTH_CONFIG.allowedEmails.map(e => e.toLowerCase()).includes(email)) {
+          signOut(auth);
+          showAuthError(`Access denied: Account ${user.email} is not authorized.`);
+          return;
+        }
+        grantAccess(user.email, 'oauth');
+      }
+    });
+  }
+</script>
+</body>
+</html>

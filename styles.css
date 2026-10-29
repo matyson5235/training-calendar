@@ -53,15 +53,6 @@ body {
   transform: scale(0.985);
 }
 
-/* Wednesday & Thursday Special Highlight */
-.training-day-col {
-  background-color: rgba(99, 102, 241, 0.04);
-}
-
-.dark .training-day-col {
-  background-color: rgba(99, 102, 241, 0.08);
-}
-
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
@@ -87,6 +78,27 @@ body {
 
 .check-pop {
   animation: checkmarkPop 0.22s ease-out forwards;
+}
+
+/* Lock screen shake animation on wrong password */
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.shake-error {
+  animation: shakeError 0.4s ease-in-out;
+}
+
+/* PIN Numpad Button */
+.pin-btn {
+  transition: all 0.12s ease;
+  user-select: none;
+}
+.pin-btn:active {
+  transform: scale(0.92);
+  background-color: rgba(99, 102, 241, 0.2);
 }
 
 /* Modal Bottom-Sheet for Mobile */

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Šachový kalendář tréninků</title>
+  <title>Tajný portál aplikací • secret.apartmanytobias.cz</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -41,285 +41,397 @@
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
-  <!-- Hlavní lišta / Navigace -->
-  <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 no-print">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2">
+  <!-- ========================================== -->
+  <!-- 🔒 BEZPEČNOSTNÍ ZÁMEK (LOCK SCREEN) -->
+  <!-- ========================================== -->
+  <div id="portal-lock-screen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950 text-white select-none">
+    <div class="max-w-sm w-full bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl text-center relative overflow-hidden">
       
-      <!-- Logo a Název -->
-      <div class="flex items-center space-x-2 sm:space-x-3 min-w-0">
-        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-brand-500 to-schedule-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 text-base sm:text-xl font-bold shrink-0">
-          ♟️
+      <!-- Dekorativní pozadí -->
+      <div class="absolute -top-16 -left-16 w-36 h-36 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -right-16 w-36 h-36 bg-schedule-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- Ikona zámku -->
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-brand-600 to-schedule-600 flex items-center justify-center text-2xl shadow-lg shadow-brand-500/20">
+        🔒
+      </div>
+
+      <h2 class="text-xl font-bold tracking-tight text-white mb-1">
+        Tajný portál
+      </h2>
+      <p class="text-xs text-slate-400 font-mono mb-6">
+        secret.apartmanytobias.cz
+      </p>
+
+      <!-- PIN / Heslo vstup -->
+      <form id="lock-form" onsubmit="event.preventDefault(); handleUnlockAttempt();" class="space-y-4">
+        
+        <div class="relative">
+          <input 
+            type="password" 
+            id="lock-pin-input" 
+            maxlength="16" 
+            inputmode="numeric" 
+            placeholder="Zadejte PIN (výchozí: 1234)" 
+            autocomplete="current-password"
+            class="w-full text-center text-lg tracking-widest font-mono py-3 px-4 rounded-xl bg-slate-800/80 border border-slate-700 text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all placeholder:text-xs placeholder:tracking-normal placeholder:text-slate-500"
+          >
+          <button type="button" id="toggle-pin-visibility" class="absolute right-3 top-3 text-slate-400 hover:text-white text-xs py-0.5 px-1.5 rounded">
+            👁️
+          </button>
         </div>
-        <div class="truncate">
-          <div class="flex items-center gap-1.5 sm:gap-2">
-            <h1 class="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white truncate">
-              Šachový kalendář
-            </h1>
-            <span class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-schedule-100 text-schedule-700 dark:bg-schedule-900/60 dark:text-schedule-300 border border-schedule-200 dark:border-schedule-800 shrink-0">
-              St &amp; Čt
+
+        <!-- Chybová hláška -->
+        <p id="lock-error-msg" class="text-xs text-rose-400 font-medium hidden">
+          Nesprávný PIN. Zkuste to znovu.
+        </p>
+
+        <!-- Numerická klávesnice pro telefony -->
+        <div class="grid grid-cols-3 gap-2 pt-2">
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('1')">1</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('2')">2</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('3')">3</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('4')">4</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('5')">5</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('6')">6</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('7')">7</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('8')">8</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('9')">9</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-rose-400 font-semibold text-sm border border-slate-700/60" onclick="clearPinInput()">Smazat</button>
+          <button type="button" class="pin-btn py-3 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-lg border border-slate-700/60" onclick="appendPinDigit('0')">0</button>
+          <button type="submit" class="pin-btn py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm border border-brand-400 shadow-md shadow-brand-500/20">Vstoupit</button>
+        </div>
+
+        <!-- Pamatovat si na 30 dní -->
+        <label class="flex items-center justify-center gap-2 text-xs text-slate-400 cursor-pointer pt-2">
+          <input type="checkbox" id="remember-me-checkbox" checked class="rounded border-slate-700 text-brand-500 focus:ring-brand-500">
+          <span>Pamatovat si mě na tomto zařízení</span>
+        </label>
+
+        <p class="text-[11px] text-slate-500 pt-2">
+          Výchozí PIN je <span class="font-mono text-slate-300 font-semibold">1234</span>. V portálu jej můžete kdykoliv změnit.
+        </p>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 🌐 ODEMČENÝ PORTÁL APLIKACÍ -->
+  <!-- ========================================== -->
+  <div id="main-portal-wrapper" class="flex-1 flex flex-col">
+
+    <!-- Hlavní lišta portálu s přepínačem aplikací -->
+    <header class="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 no-print">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2">
+        
+        <!-- Logo a Přepínač aplikací (Tabs) -->
+        <div class="flex items-center space-x-2 sm:space-x-4 min-w-0">
+          
+          <div class="flex items-center space-x-2 shrink-0">
+            <span class="text-base sm:text-lg">🛡️</span>
+            <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white hidden md:inline">secret.apartmanytobias.cz</span>
+          </div>
+
+          <!-- Přepínač: Šachový kalendář vs BSS Autorestart -->
+          <div class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-xl flex items-center text-xs font-semibold border border-slate-200 dark:border-slate-700">
+            <button id="nav-tab-sachy" class="px-2.5 sm:px-3 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+              <span>♟️</span>
+              <span class="truncate">Šachy</span>
+            </button>
+            <button id="nav-tab-bss" class="px-2.5 sm:px-3 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+              <span>🐝</span>
+              <span class="truncate">BSS Autorestart</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Akční tlačítka vpravo: Změnit PIN, Zámek, Motiv -->
+        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          
+          <!-- Tlačítko změny PINu -->
+          <button id="change-pin-modal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Změnit bezpečnostní PIN">
+            <span class="text-xs">⚙️</span>
+            <span class="hidden sm:inline ml-1">PIN</span>
+          </button>
+
+          <!-- Tlačítko pro okamžité zamčení -->
+          <button id="lock-portal-btn" class="p-2 sm:px-2.5 sm:py-1.5 text-xs font-bold rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 transition-colors flex items-center gap-1" title="Okamžitě zamknout portál">
+            <span>🔒</span>
+            <span class="hidden sm:inline">Zamknout</span>
+          </button>
+
+          <!-- Přepínač motivu -->
+          <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors" aria-label="Přepnout motiv">
+            <svg id="sun-icon" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <svg id="moon-icon" class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          </button>
+
+        </div>
+
+      </div>
+    </header>
+
+    <!-- ========================================== -->
+    <!-- APLIKACE 1: ŠACHOVÝ KALENDÁŘ TRÉNINKŮ -->
+    <!-- ========================================== -->
+    <div id="app-view-sachy" class="app-view-panel max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full space-y-4 sm:space-y-6">
+      
+      <!-- Statistiky & Přehledové karty -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 no-print">
+        
+        <!-- Karta 1: Celkem tréninků za měsíc -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Celkem</span>
+            <span class="text-sm">♟️</span>
+          </div>
+          <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
+            <span id="stat-total-trainings" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">lekcí</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">V tomto měsíci</p>
+        </div>
+
+        <!-- Karta 2: Úspěšnost Středa & Čtvrtek -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">St &amp; Čt</span>
+            <span class="text-schedule-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
             </span>
           </div>
-          <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 hidden sm:block truncate">Záznam tréninků, odškrtávání a poznámky</p>
+          <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
+            <span id="stat-wed-thu-completed" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0/0</span>
+            <span id="stat-wed-thu-percent" class="text-[10px] sm:text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 px-1.5 py-0.5 rounded-full">0%</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Splněné tréninky</p>
         </div>
+
+        <!-- Karta 3: Zapsané poznámky -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rozbory</span>
+            <span class="text-amber-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
+            <span id="stat-notes-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">zápisů</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Poznámky k partiím</p>
+        </div>
+
+        <!-- Karta 4: Tréninková série -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Série</span>
+            <span class="text-rose-500">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
+              </svg>
+            </span>
+          </div>
+          <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
+            <span id="stat-streak" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
+            <span class="text-[11px] sm:text-xs text-slate-500">týdnů</span>
+          </div>
+          <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Pravidelnost</p>
+        </div>
+
       </div>
 
-      <!-- Akční tlačítka v záhlaví -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <!-- Navigace v kalendáři & Ovládání -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-5 shadow-sm space-y-3">
         
-        <!-- Hromadné označení St & Čt -->
-        <button id="bulk-check-btn" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Označit všechny středy a čtvrtky">
-          <svg class="w-3.5 h-3.5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span class="hidden sm:inline">Označit St &amp; Čt</span>
-          <span class="sm:hidden">St+Čt</span>
-        </button>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center space-x-1 sm:space-x-2">
+            <button id="prev-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Předchozí měsíc">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            
+            <h2 id="current-month-display" class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              Říjen 2026
+            </h2>
 
-        <!-- Export a Záloha -->
-        <button id="export-modal-btn" class="p-2 sm:px-3 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Export / Záloha">
-          <svg class="w-4 h-4 text-slate-500 sm:mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-          </svg>
-          <span class="hidden sm:inline">Záloha</span>
-        </button>
+            <button id="next-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Další měsíc">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
 
-        <!-- Přepínač motivu -->
-        <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors" aria-label="Přepnout motiv">
-          <svg id="sun-icon" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
-          </svg>
-          <svg id="moon-icon" class="w-4 h-4 block dark:hidden text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-          </svg>
-        </button>
+          <div class="flex items-center gap-1.5">
+            <button id="today-btn" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
+              Dnes
+            </button>
+            <button id="bulk-check-btn" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Označit všechny středy a čtvrtky">
+              <span class="text-brand-500">✓</span>
+              <span class="hidden sm:inline">Označit St &amp; Čt</span>
+              <span class="sm:hidden">St+Čt</span>
+            </button>
+            <button id="export-modal-btn" class="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors" title="Záloha">
+              📁 <span class="hidden sm:inline">Záloha</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Přepínač zobrazení -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
+            <button id="format-grid-btn" class="px-2.5 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white flex items-center gap-1">
+              <span>Mřížka</span>
+            </button>
+            <button id="format-agenda-btn" class="px-2.5 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
+              <span>Seznam (St &amp; Čt)</span>
+            </button>
+          </div>
+
+          <div id="grid-filter-container" class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
+            <button id="view-all-btn" class="px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white">
+              Všechny dny
+            </button>
+            <button id="view-focus-btn" class="px-2 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+              Jen St &amp; Čt
+            </button>
+          </div>
+        </div>
 
       </div>
 
-    </div>
-  </header>
-
-  <!-- Hlavní obsah -->
-  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 w-full space-y-4 sm:space-y-6">
-
-    <!-- Statistiky & Přehledové karty (Kompaktní na mobilu) -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 no-print">
-      
-      <!-- Karta 1: Celkem tréninků za měsíc -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Celkem</span>
-          <span class="text-sm">♟️</span>
+      <!-- Mřížka kalendáře -->
+      <div id="calendar-view-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+        <div class="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-center font-bold text-[11px] sm:text-xs uppercase tracking-wider select-none">
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Po</span><span class="hidden sm:inline">Pondělí</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Út</span><span class="hidden sm:inline">Úterý</span></div>
+          <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-x border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
+            <span class="sm:hidden">St</span><span class="hidden sm:inline">Středa</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
+          </div>
+          <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-r border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
+            <span class="sm:hidden">Čt</span><span class="hidden sm:inline">Čtvrtek</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
+          </div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Pá</span><span class="hidden sm:inline">Pátek</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">So</span><span class="hidden sm:inline">Sobota</span></div>
+          <div class="py-2.5 text-slate-500 dark:text-slate-400"><span class="sm:hidden">Ne</span><span class="hidden sm:inline">Neděle</span></div>
         </div>
-        <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
-          <span id="stat-total-trainings" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-          <span class="text-[11px] sm:text-xs text-slate-500">lekcí</span>
-        </div>
-        <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">V tomto měsíci</p>
+        <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-800"></div>
       </div>
 
-      <!-- Karta 2: Úspěšnost Středa & Čtvrtek -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">St &amp; Čt</span>
-          <span class="text-schedule-500">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-          </span>
+      <!-- Seznam / Agenda tréninků -->
+      <div id="agenda-view-container" class="hidden space-y-3">
+        <div class="text-xs text-slate-500 dark:text-slate-400 px-1 flex items-center justify-between">
+          <span>Středeční a čtvrteční šachové tréninky v měsíci:</span>
+          <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">Kliknutím upravíte detail</span>
         </div>
-        <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
-          <span id="stat-wed-thu-completed" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0/0</span>
-          <span id="stat-wed-thu-percent" class="text-[10px] sm:text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 px-1.5 py-0.5 rounded-full">0%</span>
-        </div>
-        <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Splněné tréninky</p>
-      </div>
-
-      <!-- Karta 3: Zapsané poznámky -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rozbory</span>
-          <span class="text-amber-500">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
-          <span id="stat-notes-count" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-          <span class="text-[11px] sm:text-xs text-slate-500">zápisů</span>
-        </div>
-        <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Poznámky k partiím</p>
-      </div>
-
-      <!-- Karta 4: Tréninková série -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-4 shadow-sm relative overflow-hidden">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Série</span>
-          <span class="text-rose-500">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path>
-            </svg>
-          </span>
-        </div>
-        <div class="mt-1 sm:mt-2 flex items-baseline gap-1.5">
-          <span id="stat-streak" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">0</span>
-          <span class="text-[11px] sm:text-xs text-slate-500">týdnů</span>
-        </div>
-        <p class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">Pravidelnost</p>
+        <div id="agenda-cards-list" class="space-y-2.5"></div>
       </div>
 
     </div>
 
-    <!-- Navigace v kalendáři & Přepínače zobrazení -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 sm:p-5 shadow-sm space-y-3">
-      
-      <!-- Horní řádek navigace: Měsíc + Tlačítka < > Dnes -->
-      <div class="flex items-center justify-between gap-2">
-        
-        <div class="flex items-center space-x-1 sm:space-x-2">
-          <button id="prev-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Předchozí měsíc" aria-label="Předchozí měsíc">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-          </button>
-          
-          <h2 id="current-month-display" class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-            Říjen 2026
-          </h2>
-
-          <button id="next-month-btn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors" title="Další měsíc" aria-label="Další měsíc">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </button>
+    <!-- ========================================== -->
+    <!-- APLIKACE 2: BSS AUTORESTART DASHBOARD -->
+    <!-- ========================================== -->
+    <div id="app-view-bss" class="app-view-panel hidden flex-1 flex flex-col w-full bg-[#080b12] text-white">
+      <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="font-bold text-white">BSS Cloud Hub • Multi-Instance Dashboard</span>
         </div>
-
-        <div class="flex items-center gap-1.5">
-          <button id="today-btn" class="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
-            Dnes
+        <div class="flex items-center gap-2">
+          <button onclick="document.getElementById('bss-frame').contentWindow.location.reload();" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
+            🔄 Obnovit
           </button>
+          <a href="bss.html" target="_blank" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors">
+            ↗️ Samostatné okno
+          </a>
         </div>
-
       </div>
-
-      <!-- Spodní lišta ovládání: Přepínač zobrazení (Mřížka vs Seznam) + Filtr dnů -->
-      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-        
-        <!-- Přepínač formátu: Mřížka vs Seznam (Skvělé na mobilu!) -->
-        <div class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
-          <button id="format-grid-btn" class="px-2.5 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white flex items-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-            </svg>
-            <span>Mřížka</span>
-          </button>
-          <button id="format-agenda-btn" class="px-2.5 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            <span>Seznam (St &amp; Čt)</span>
-          </button>
-        </div>
-
-        <!-- Filtr dnů v mřížce -->
-        <div id="grid-filter-container" class="bg-slate-100 dark:bg-slate-800 p-0.5 sm:p-1 rounded-lg flex items-center text-xs font-medium border border-slate-200 dark:border-slate-700">
-          <button id="view-all-btn" class="px-2 py-1 rounded-md transition-colors bg-white dark:bg-slate-700 shadow-sm text-slate-800 dark:text-white">
-            Všechny dny
-          </button>
-          <button id="view-focus-btn" class="px-2 py-1 rounded-md transition-colors text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-            Jen St &amp; Čt
-          </button>
-        </div>
-
-      </div>
-
+      <iframe 
+        id="bss-frame" 
+        src="bss.html" 
+        class="w-full flex-1 min-h-[85vh] border-0 bg-[#080b12]"
+        title="BSS Autorestart Dashboard"
+      ></iframe>
     </div>
 
-    <!-- POHLED 1: Mřížka kalendáře (Plně responzivní na mobilu) -->
-    <div id="calendar-view-container" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-      
-      <!-- Záhlaví dnů (Zkrácené Po, Út, St, Čt na mobilu; plné názvy na desktopu) -->
-      <div class="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 text-center font-bold text-[11px] sm:text-xs uppercase tracking-wider select-none">
-        <div class="py-2.5 text-slate-500 dark:text-slate-400">
-          <span class="sm:hidden">Po</span><span class="hidden sm:inline">Pondělí</span>
-        </div>
-        <div class="py-2.5 text-slate-500 dark:text-slate-400">
-          <span class="sm:hidden">Út</span><span class="hidden sm:inline">Úterý</span>
-        </div>
-        <!-- Středa -->
-        <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-x border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
-          <span class="sm:hidden">St</span><span class="hidden sm:inline">Středa</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
-        </div>
-        <!-- Čtvrtek -->
-        <div class="py-2.5 text-schedule-600 dark:text-schedule-400 bg-schedule-50/70 dark:bg-schedule-950/40 border-r border-schedule-100 dark:border-schedule-900/40 font-extrabold flex items-center justify-center gap-1">
-          <span class="sm:hidden">Čt</span><span class="hidden sm:inline">Čtvrtek</span>
-          <span class="w-1.5 h-1.5 rounded-full bg-schedule-500 shrink-0"></span>
-        </div>
-        <div class="py-2.5 text-slate-500 dark:text-slate-400">
-          <span class="sm:hidden">Pá</span><span class="hidden sm:inline">Pátek</span>
-        </div>
-        <div class="py-2.5 text-slate-500 dark:text-slate-400">
-          <span class="sm:hidden">So</span><span class="hidden sm:inline">Sobota</span>
-        </div>
-        <div class="py-2.5 text-slate-500 dark:text-slate-400">
-          <span class="sm:hidden">Ne</span><span class="hidden sm:inline">Neděle</span>
-        </div>
+    <!-- Patička -->
+    <footer class="mt-auto py-3 sm:py-5 border-t border-slate-200 dark:border-slate-800 text-center text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 no-print">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1">
+        <p>🛡️ secret.apartmanytobias.cz &bull; Chráněný portál</p>
+        <p>Šachový kalendář &bull; BSS Autorestart</p>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODÁL: ZMĚNA BEZPEČNOSTNÍHO PINU -->
+  <!-- ========================================== -->
+  <div id="change-pin-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm hidden">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <h3 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>⚙️</span> Změna bezpečnostního PINu
+        </h3>
+        <button id="close-pin-modal-btn" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">✕</button>
       </div>
 
-      <!-- Buňky kalendáře -->
-      <div id="calendar-days-grid" class="grid grid-cols-7 divide-x divide-y divide-slate-200 dark:divide-slate-800">
-        <!-- Rendered by JavaScript -->
-      </div>
+      <form id="change-pin-form" onsubmit="event.preventDefault(); handleChangePinSubmit();" class="py-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Současný PIN</label>
+          <input type="password" id="input-old-pin" placeholder="např. 1234" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Nový PIN / Heslo</label>
+          <input type="password" id="input-new-pin" placeholder="Nový PIN (4-16 znaků)" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Potvrzení nového PINu</label>
+          <input type="password" id="input-confirm-pin" placeholder="Zadejte znovu nový PIN" class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
 
+        <p id="change-pin-msg" class="text-xs font-medium hidden"></p>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" id="cancel-change-pin-btn" class="px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Zrušit</button>
+          <button type="submit" class="px-4 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md">Uložit nový PIN</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- POHLED 2: Seznam / Agenda tréninků (Optimalizovaný pro mobilní displeje) -->
-    <div id="agenda-view-container" class="hidden space-y-3">
-      <div class="text-xs text-slate-500 dark:text-slate-400 px-1 flex items-center justify-between">
-        <span>Středeční a čtvrteční šachové tréninky v měsíci:</span>
-        <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">Kliknutím upravíte detail</span>
-      </div>
-      <div id="agenda-cards-list" class="space-y-2.5">
-        <!-- Rendered by JavaScript -->
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Modální okno: Detail dne (Na mobilu jako přívětivý Bottom-Sheet) -->
+  <!-- Modální okno: Detail dne -->
   <div id="day-modal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-sm hidden modal-overlay mobile-bottom-sheet">
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl modal-content mobile-sheet-content transform scale-95 opacity-0 overflow-y-auto max-h-[90vh]">
-      
-      <!-- Indikátor pro potažení na mobilu -->
       <div class="w-12 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 mx-auto mb-3 sm:hidden"></div>
 
-      <!-- Záhlaví modálu -->
       <div class="flex items-start justify-between pb-3 sm:pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <div class="flex items-center gap-2 flex-wrap">
-            <h3 id="modal-date-title" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
-              Středa, 28. října 2026
-            </h3>
-            <span id="modal-badge-day" class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-schedule-100 text-schedule-700 dark:bg-schedule-900 dark:text-schedule-300">
-              Tréninkový den
-            </span>
+            <h3 id="modal-date-title" class="text-base sm:text-xl font-bold text-slate-900 dark:text-white">Středa, 28. října 2026</h3>
+            <span id="modal-badge-day" class="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-schedule-100 text-schedule-700 dark:bg-schedule-900 dark:text-schedule-300">Tréninkový den</span>
           </div>
           <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1">Kolik tréninků jste měli a jaké byly poznámky</p>
         </div>
-        <button id="modal-close-btn" class="p-1.5 sm:p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Zavřít">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+        <button id="modal-close-btn" class="p-1.5 sm:p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">✕</button>
       </div>
 
-      <!-- Tělo modálu -->
       <div class="py-3 sm:py-4 space-y-3.5">
-        
-        <!-- Sekce Stav & Počet tréninků -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
-          <!-- Přepínač: Splněno -->
           <div class="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
             <div>
               <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Stav tréninku</span>
@@ -331,7 +443,6 @@
             </label>
           </div>
 
-          <!-- Počet šachových tréninků -->
           <div class="p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between">
             <div>
               <span class="block text-xs font-medium text-slate-500 dark:text-slate-400">Počet tréninků</span>
@@ -345,7 +456,6 @@
           </div>
         </div>
 
-        <!-- Šachové zaměření (Rychlé štítky) -->
         <div>
           <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">Šachové zaměření (Rychlé štítky)</label>
           <div id="modal-quick-tags" class="flex flex-wrap gap-1.5">
@@ -358,39 +468,21 @@
           </div>
         </div>
 
-        <!-- Poznámky k tréninku -->
         <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label for="modal-notes-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-              </svg>
-              Poznámky k šachovému tréninku
-            </label>
-          </div>
-          <textarea id="modal-notes-input" rows="3" placeholder="Napište podrobnosti o trénincích (taktika na Lichess, rozbor Sicilské, propočty)..." class="w-full text-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white transition-all"></textarea>
+          <label for="modal-notes-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 mb-1.5">
+            <span>📝</span> Poznámky k šachovému tréninku
+          </label>
+          <textarea id="modal-notes-input" rows="3" placeholder="Napište podrobnosti o trénincích..." class="w-full text-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 p-3 focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-900 dark:text-white transition-all"></textarea>
         </div>
-
       </div>
 
-      <!-- Patička modálu -->
       <div class="flex items-center justify-between pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button id="modal-clear-btn" type="button" class="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors py-2">
-          Smazat
-        </button>
+        <button id="modal-clear-btn" type="button" class="text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 transition-colors py-2">Smazat</button>
         <div class="flex items-center gap-2">
-          <button id="modal-cancel-btn" type="button" class="px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors">
-            Zrušit
-          </button>
-          <button id="modal-save-btn" type="button" class="px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Uložit
-          </button>
+          <button id="modal-cancel-btn" type="button" class="px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">Zrušit</button>
+          <button id="modal-save-btn" type="button" class="px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-500 hover:bg-brand-600 text-white shadow-md active:scale-95">Uložit</button>
         </div>
       </div>
-
     </div>
   </div>
 
@@ -399,46 +491,21 @@
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl mobile-sheet-content">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
         <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Správa šachových dat</h3>
-        <button id="export-close-btn" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
+        <button id="export-close-btn" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400">✕</button>
       </div>
 
       <div class="py-4 space-y-3">
-        <p class="text-xs text-slate-500 dark:text-slate-400">
-          Všechna data se ukládají přímo do vašeho zařízení. Můžete si stáhnout zálohu v JSON nebo tabulku pro Excel (CSV).
-        </p>
-
         <div class="space-y-2 pt-2">
           <button id="download-json-btn" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white transition-all">
-            <span class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-              </svg>
-              Stáhnout zálohu (JSON)
-            </span>
-            <span class="text-[11px] text-slate-400">Kompletní záloha</span>
+            <span>💾 Stáhnout zálohu (JSON)</span>
+            <span class="text-[11px] text-slate-400">Kompletní</span>
           </button>
-
           <button id="download-csv-btn" class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white transition-all">
-            <span class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-schedule-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
-              Exportovat tabulku (CSV)
-            </span>
-            <span class="text-[11px] text-slate-400">Excel / Tabulky</span>
+            <span>📊 Exportovat tabulku (CSV)</span>
+            <span class="text-[11px] text-slate-400">Excel</span>
           </button>
-
           <label class="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-brand-500 bg-slate-50 dark:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-white cursor-pointer transition-all">
-            <span class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-              </svg>
-              Obnovit data ze souboru JSON
-            </span>
+            <span>📥 Obnovit data ze souboru JSON</span>
             <input type="file" id="import-json-file" accept=".json" class="hidden">
             <span class="text-[11px] text-slate-400">Vybrat</span>
           </label>
@@ -446,14 +513,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Patička -->
-  <footer class="mt-auto py-4 sm:py-6 border-t border-slate-200 dark:border-slate-800 text-center text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 no-print">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
-      <p>♟️ Šachový kalendář tréninků &bull; Středa &amp; Čtvrtek</p>
-      <p>Uloženo lokálně v prohlížeči</p>
-    </div>
-  </footer>
 
   <script src="app.js"></script>
 </body>
