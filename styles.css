@@ -16,6 +16,42 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Inputs: font-size 16px minimum so iOS Safari does not zoom */
+input, select, textarea {
+  font-size: 16px;
+}
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Buttons: touch-action manipulation to eliminate tap zoom delay */
+button, [role="button"], a, input[type="button"], input[type="submit"] {
+  touch-action: manipulation;
+}
+
+/* Active states on interactive controls */
+button:active, [role="button"]:active, a:active {
+  opacity: 0.88;
+  transform: scale(0.985);
+  transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+/* Popups & sheets: overscroll-behavior contain prevents background scrolling */
+[role="dialog"], dialog, [data-state="open"] > [role="dialog"], .mobile-sheet-content, .modal-content {
+  overscroll-behavior: contain;
+}
+
+/* Carousels: scroll-snap defaults */
+.carousel-track, [data-carousel-track] {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.carousel-card, [data-carousel-card] {
+  scroll-snap-align: start;
+}
+
 body {
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
